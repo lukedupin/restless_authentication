@@ -1,0 +1,34 @@
+# =Acts When Authorized
+#
+# Author::    Luke Dupin (lukedupin@rebelonrails.com)
+# Copyright:: RebelOnRails.com (2009)
+# License::   GPL
+# 
+# ==The Goal
+# Acts when authorized is just that, a plug in that does something when a
+# user is authorized.  There are several goals of this plug in:
+# * Ease of use
+# * Shallow learning curve
+# * Flexibility to suit any taste
+# * More usable features
+#
+# ==Operational Parameters
+# How does this plugin aim to meet our goals?  We attack the problem with the
+# right attitude, don't just make it better, define what better is.  Once 
+# better is defined, meet those parameters.  Here are our parameters:
+# 1. No predefined database names.
+# 1. Document the entire system.
+# 1. New users up and running within 10 minutes of finding the plugin.
+# 1. No assumpts about the website's flow or structure.
+# 1. Authentication without loss of user's state information.
+# 1. Seperate configuration from source code manipulation.
+# 1. User roles are defined by program constants.
+# 1. Seperate user authentication to be, code access, and data access.
+#
+# ==Definitions and Concepts
+# What makes this plugin so different?  A clear vision of how and why:
+#
+# * User Authentication - User authentication defines the 
+
+code access to the system.  The standard user role's model defining their system access doesn't facilitate complex business cases.  What the user's role does is define what code they have a right to access and run.  That means user authentication should provide logging in and code access checks. 
+# * 

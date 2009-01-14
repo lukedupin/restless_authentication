@@ -1,0 +1,36 @@
+database:
+  user:
+    model: User
+    uid:
+      user_uid_field: id
+    usernames:
+      username_field: username
+    passwords:
+      plain_text_field: nil
+      encrypted_field: encrypted_password
+    cookies:
+      token_field: remember_token
+      expires_field: remember_token_expires_at
+  role:
+    model: Role
+    user_linkage:
+      relationship_type: [many_to_many,one_to_many,local]
+      relationship_field: roles
+    role_code_field: code
+authentication:
+  encryption: [md5,sha1,none]
+  password_match: [encrypted_field,plain_text_field]
+  auth_post: true
+  auth_session: true
+  auth_cookie: true
+  helpers:
+    authenticated_method: authenticated
+    password_method: storePassword
+    encryption_method: encrypt
+    authenticate_method: authenticate
+  post_login:
+    post_form_field: login
+    post_username_field: username
+    post_password_field: password
+  session_login:
+    uid_field: user_uid

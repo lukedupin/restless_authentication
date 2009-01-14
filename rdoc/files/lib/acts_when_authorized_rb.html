@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: acts_when_authorized.rb</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>acts_when_authorized.rb</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>lib/acts_when_authorized.rb
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Mon Jan 12 17:23:47 -0800 2009</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <h1>Acts When Authorized</h1>
+<table>
+<tr><td valign="top">Author:</td><td>Luke Dupin (lukedupin@rebelonrails.com)
+
+</td></tr>
+<tr><td valign="top">Copyright:</td><td>RebelOnRails.com (2009)
+
+</td></tr>
+<tr><td valign="top">License:</td><td>GPL
+
+</td></tr>
+</table>
+<h2>The Goal</h2>
+<p>
+Acts when authorized is just that, a plug in that does something when a
+user is authorized. There are several goals of this plug in:
+</p>
+<ul>
+<li>Ease of use
+
+</li>
+<li>Shallow learning curve
+
+</li>
+<li>Flexibility to suit any taste
+
+</li>
+<li>More usable features
+
+</li>
+</ul>
+<h2>Operational Parameters</h2>
+<p>
+How does this plugin aim to meet our goals? We attack the problem with the
+right attitude, don&#8216;t just make it better, define what better is.
+Once better is defined, meet those parameters. Here are our parameters:
+</p>
+<ol>
+<li>No predefined database names.
+
+</li>
+<li>Document the entire system.
+
+</li>
+<li>New users up and running within 10 minutes of finding the plugin.
+
+</li>
+<li>No assumpts about the website&#8216;s flow or structure.
+
+</li>
+<li>Authentication without loss of user&#8216;s state information.
+
+</li>
+<li>Seperate configuration from source code manipulation.
+
+</li>
+<li>User roles are defined by program constants.
+
+</li>
+<li>Seperate user authentication, roles, code access, and data access.
+
+<pre>
+   ==Definitions
+</pre>
+</li>
+</ol>
+<p>
+What makes this plugin so different? A clear vision of how and why:
+</p>
+<ul>
+<li>User Authentication - User authentication defines the code access rules.
+
+</li>
+</ul>
+<p>
+boner
+</p>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>
