@@ -34,3 +34,5 @@ authentication:
     post_password_field: password
   session_login:
     uid_field: user_uid
+static_roles:
+  filter_policy: [black_list, white_list]

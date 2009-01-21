@@ -1,11 +1,11 @@
-# =Acts When Authorized
+# =Restless Authentication
 #
 # Author::    Luke Dupin (lukedupin@rebelonrails.com)
 # Copyright:: RebelOnRails.com (2009)
 # License::   GPL
 # 
 # ==The Goal
-# Acts when authorized is just that, a plug in that does something when a
+# Restless Authentication is just that, a plug in that does something when a
 # user is authorized.  There are several goals of this plug in:
 # * Ease of use
 # * Shallow learning curve
@@ -29,6 +29,18 @@
 # What makes this plugin so different?  A clear vision of how and why:
 #
 # * User Authentication - User authentication defines the code access rules.
-# boner
-class ActsWhenAuthorized
+class RestlessAuthentication
+
+  #################
+  # Class Methods #
+  #################
+
+  # Returns the stack of the methods that are called  zero is the parent method
+  def self.trace
+    result = Array.new
+    Kernel::caller.each do |stk|
+      result.push( stk.gsub(/.*`([^']*)'.*/, '\1').to_sym) if stk.include?('`')
+    end
+    return result
+  end
 end
