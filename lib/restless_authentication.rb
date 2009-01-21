@@ -41,18 +41,18 @@ class RestlessAuthentication
   # Class Methods #
   #################
   # Returns the database section of my config file
-  def self.database
-    (defined? @@database)? @@database: self.load_config(:database)
+  def self.database( stream_line = true )
+    (defined? @@database)? @@database: self.load_config(:database, stream_line)
   end
 
   # Returns the authentication section of my config file
-  def self.authentication
-    (defined? @@authentication)? @@authentication: self.load_config(:auth)
+  def self.authentication( stream_line = true )
+    (defined? @@authentication)? @@authentication: self.load_config(:auth, stream_line)
   end
 
   # Returns the static_roles section of my config file
-  def self.static_roles
-    (defined? @@static_roles)? @@static_roles: self.load_config(:static_roles)
+  def self.static_roles( stream_line = true )
+    (defined? @@static_roles)? @@static_roles: self.load_config(:static_roles, stream_line)
   end
 
   # Returns the stack of the methods that are called  zero is the parent method
@@ -66,7 +66,7 @@ class RestlessAuthentication
 
   private
   # Loads the user's config file into class variables
-  def self.load_config( config = :nothing )
+  def self.load_config( config = :nothing, stream_line = true )
       #Load up the config file
     yaml = YAML::load( RestlessAuthentication::CONFIG )
 
@@ -74,6 +74,12 @@ class RestlessAuthentication
     @@database = self.fill_daml( yaml['database'] )
     @@authentication = self.fill_daml( yaml['authentication'] )
     @@static_roles = self.fill_daml( yaml['static_roles'] )
+
+      #Change my special instances to a better form
+    if stream_line
+      @@database.user.model = eval("@@database.user.model")
+      @@database.role.model = eval("@@database.role.model")
+    end
 
       #Return a newly loaded config if requested
     case config
