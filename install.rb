@@ -4,9 +4,7 @@ require 'ftools'
 config = "#{File.dirname(__FILE__)}/config/restless_authentication.yml"
 
 	#Define a readline statement that doesn't kill the stupid thing
-def readline
-	$stdin.readline
-end
+def readline; $stdin.readline; end
 
 	#Rercurisively create the user's config file
 def create_config( yaml, depth = Array.new )

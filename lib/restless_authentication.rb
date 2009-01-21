@@ -40,6 +40,11 @@ class RestlessAuthentication
   #################
   # Class Methods #
   #################
+  # Do a configuration reload
+  def self.reload_config( stream_line = true )
+    self.load_config( :nothing, stream_line )
+  end
+
   # Returns the database section of my config file
   def self.database( stream_line = true )
     (defined? @@database)? @@database: self.load_config(:database, stream_line)
@@ -53,6 +58,30 @@ class RestlessAuthentication
   # Returns the static_roles section of my config file
   def self.static_roles( stream_line = true )
     (defined? @@static_roles)? @@static_roles: self.load_config(:static_roles, stream_line)
+  end
+
+  # Returns a list of all the models we deal with
+  def self.list_models_human( stream_line = true )
+    self.list_models( stream_line, :human )
+  end
+  def self.list_models( stream_line = true, type = :code )
+      #Go through all the different models I need for this to work
+    tables = Array.new
+    tables.push( RestlessAuthentication.database(stream_line).user.model.to_s )
+    tables.push( RestlessAuthentication.database(stream_line).role.model.to_s )
+    tables.collect!{|x| x.gsub(/[A-Z]/, '_\1').sub(/^_/,'')}
+    tables.sort!
+    tables.push( "#{tables[0].pluralize}_#{tables[1]}" )
+
+      #Convert all these to names to human names
+    case type
+    when :human
+      return tables.collect{|t| t.split(/_/).collect{|x| x.capitalize}.join}
+    when :both
+      return tables.collect{|t| [t,t.split(/_/).collect{|x| x.capitalize}.join]}
+    else
+      return tables
+    end
   end
 
   # Returns the stack of the methods that are called  zero is the parent method
@@ -76,6 +105,7 @@ class RestlessAuthentication
     @@static_roles = self.fill_daml( yaml['static_roles'] )
 
       #Change my special instances to a better form
+    @@stream_line = stream_line
     if stream_line
       @@database.user.model = eval("@@database.user.model")
       @@database.role.model = eval("@@database.role.model")
@@ -92,6 +122,8 @@ class RestlessAuthentication
     when :static_roles
       return @@static_roles
     end 
+
+    return true
   end
 
   private
