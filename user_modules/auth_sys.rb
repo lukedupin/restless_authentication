@@ -81,18 +81,13 @@ module UserAuthSys
 	# Module Methods #
 	##################
 	private
-	#Return the configuration for the authentication system
-	def config
-		return ActsWhenAuthorized.config
-	end
-
 	#Return the database section on the configuration
 	def db
-		return config.database
+		return RestlessAuthentication.database
 	end
 
 	#Return the authentication section of the configuration
 	def auth
-		return config.authentication
+		return RestlessAuthentication.authentication
 	end
 end

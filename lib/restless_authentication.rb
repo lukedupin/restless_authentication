@@ -1,3 +1,5 @@
+require 'yaml'
+
 # =Restless Authentication
 #
 # Author::    Luke Dupin (lukedupin@rebelonrails.com)
@@ -5,8 +7,8 @@
 # License::   GPL
 # 
 # ==The Goal
-# Restless Authentication is just that, a plug in that does something when a
-# user is authorized.  There are several goals of this plug in:
+# Restless Authentication is plugin in built with flexibilty in mind.
+# There are several goals of this plug in:
 # * Ease of use
 # * Shallow learning curve
 # * Flexibility to suit any taste
@@ -30,10 +32,28 @@
 #
 # * User Authentication - User authentication defines the code access rules.
 class RestlessAuthentication
+  #############
+  # Constants #
+  #############
+  CONFIG = "#{File.dirname(__FILE__)}/../../../../config/restless_authentication.yml"
 
   #################
   # Class Methods #
   #################
+  # Returns the database section of my config file
+  def self.database
+    (defined? @@database)? @@database: self.load_config(:database)
+  end
+
+  # Returns the authentication section of my config file
+  def self.authentication
+    (defined? @@authentication)? @@authentication: self.load_config(:auth)
+  end
+
+  # Returns the static_roles section of my config file
+  def self.static_roles
+    (defined? @@static_roles)? @@static_roles: self.load_config(:static_roles)
+  end
 
   # Returns the stack of the methods that are called  zero is the parent method
   def self.trace
@@ -42,5 +62,50 @@ class RestlessAuthentication
       result.push( stk.gsub(/.*`([^']*)'.*/, '\1').to_sym) if stk.include?('`')
     end
     return result
+  end
+
+  private
+  # Loads the user's config file into class variables
+  def self.load_config( config = :nothing )
+      #Load up the config file
+    yaml = YAML::load( RestlessAuthentication::CONFIG )
+
+      #Populate my class variables
+    @@database = self.fill_daml( yaml['database'] )
+    @@authentication = self.fill_daml( yaml['authentication'] )
+    @@static_roles = self.fill_daml( yaml['static_roles'] )
+
+      #Return a newly loaded config if requested
+    case config
+    when :database
+      return @@database
+    when :auth  #Short hand version, cause I hate typing
+      return @@authentication
+    when :authentication
+      return @@authentication
+    when :static_roles
+      return @@static_roles
+    end 
+  end
+
+  private
+  # Build out my dynamic classes from a yaml file
+  def self.fill_daml( yaml )
+      #If this isn't a hash, don't do anything but return it
+    return yaml if !yaml.is_a? Hash
+  
+      #Create a new class that can add accessors
+    klass = Class.new
+    klass.class_eval do
+      def add_accessor(acs, value)
+        eval("class << self; attr_reader :#{acs}; end")
+        instance_variable_set("@#{acs}", value)
+        self
+      end
+    end
+
+      #Go through the yaml file recursing through all the config info
+    daml = klass.new
+    yaml.each {|key, value| daml.add_accessor(key, fill_daml(value))}
   end
 end

@@ -35,4 +35,4 @@ authentication:
   session_login:
     uid_field: user_uid
 static_roles:
-  filter_policy: [black_list, white_list]
+  filter_policy: [white_list, black_list]

@@ -13,7 +13,7 @@ module AuthStaticFilter
     return false if !user.is_a? User
 
       #Store my filter policy
-    policy = RestlessAuthentication.static_roles.filter_policy == :white_list
+    policy = RestlessAuthentication.static_roles.filter_policy == :black_list
 
       #Populate my roles variable
     roles = [roles.to_sym] if !roles.nil? and !roles.is_a? Array
@@ -24,7 +24,7 @@ module AuthStaticFilter
       return policy if !defined? @@filter_roles
 
         #Attempt to dirive the function that is calling us
-      func = ActsWhenAuthorized.trace[1].to_s.to_sym
+      func = RestlessAuthentication.trace[1].to_s.to_sym
 
         #Store my roles role pool into the local role variables
       return policy if @@filter_roles[func].nil?
@@ -94,6 +94,33 @@ module AuthStaticFilter
     # Before filter that requires a user to have static roles access to this
     # controller's specific action it is trying to work off of
     def restless_filter
+        #Store my filter policy
+      policy = RestlessAuthentication.static_roles.filter_policy == :black_list
+
+        #Return that we failed if there is no way to know what action to use
+      return policy if !params[:action] or !params[:controller]
+      action = params[:action].to_sym
+      controller = params[:controller].to_sym
+
+        #Raise an error if my filter roles aren't even defined yet
+      if !defined? @@filter_roles
+        return true if policy #Exit out if we are black listed on errors
+        raise "No roles defined for restless_filter inside #{controller}"
+      end
+        
+        #Exit if this action isn't defined to have any roles
+      return policy if @@filter_roles[action].nil?
+      
+        #Return false if there is no user and there are defined roles
+      return false if !current_user
+
+        #Go through all the requested roles checking if the user meets any
+      @@filter_roles[action].each do |count, roles|
+        return true if current_user.has_role?( roles, count )
+      end
+      
+        #User isn't okay to do what they are trying to do
+      return false
     end
 	end
 

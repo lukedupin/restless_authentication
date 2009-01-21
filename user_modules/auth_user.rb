@@ -10,23 +10,23 @@ module AuthHelper
 	####################
 	# Returns true if the given password matches the one in the database
 	def authenticated?( password )
-		crypt = ActsWhenAuthorized.authentication.helpers.encryption_method
-		field = ActsWhenAuthorized.database.user.passwords[ActsWhenAuthorized.authentication.helpers.password_match]
+		crypt = RestlessAuthentication.authentication.helpers.encryption_method
+		field = RestlessAuthentication.database.user.passwords[RestlessAuthentication.authentication.helpers.password_match]
 		
 		(self.send(field) == self.send(crypt, password))? self: nil
 	end
 
   # Overide method to authomatically encrypt passwords
 	def storePassword(password)
-		pass = ActsWhenAuthorized.database.user.passwords
-		crypt = ActsWhenAuthorized.authentication.helpers.encryption_method
+		pass = RestlessAuthentication.database.user.passwords
+		crypt = RestlessAuthentication.authentication.helpers.encryption_method
 		self.send("#{pass.plain_text_field}=", password) if pass.plain_text_field
 		self.send("#{pass.encrypted_field}=", self.send(crypt, password)) if pass.encrypted_field
 	end
 
 	# Encrypt based on the encryption method defined: md5, sha1, or none
 	def encrypt(password)
-		send(ActsWhenAuthorized.authentication.encryption, password)
+		send(RestlessAuthentication.authentication.encryption, password)
 	end
 
   # Returns true if the current class contains the requested role(s)
@@ -37,7 +37,7 @@ module AuthHelper
 
       #Convert all role symbols into the role code form
     roles = Array.new
-    model = ActsWhenAuthorized.database.role.model
+    model = RestlessAuthentication.database.role.model
     roles_sym.each {|r| roles.push(model.role_code(r)) }
 
       #Get all my local variables ready to be used
@@ -50,9 +50,9 @@ module AuthHelper
 
   # Return an array of all the static roles the user contains
   def list_roles
-    field = ActsWhenAuthorized.database.role.role_code_field
-    type = ActsWhenAuthorized.database.role.user_linkage.relationship_type
-    linkage = ActsWhenAuthorized.database.role.user_linkage.relationship_field
+    field = RestlessAuthentication.database.role.role_code_field
+    type = RestlessAuthentication.database.role.user_linkage.relationship_type
+    linkage=RestlessAuthentication.database.role.user_linkage.relationship_field
   
       #Find all possible instances of the requested roles
     case type
@@ -75,9 +75,9 @@ module AuthHelper
 	module ClassMethods
 		# Authenticate a user based on username and password
 		def authenticate( username, password )
-			model = ActsWhenAuthorized.database.user.model	
-			find_by = ActsWhenAuthorized.database.user.usernames.username_find
-			auth = ActsWhenAuthorized.authentication.helpers.authenticated_method
+			model = RestlessAuthentication.database.user.model	
+			find_by = RestlessAuthentication.database.user.usernames.username_find
+			auth = RestlessAuthentication.authentication.helpers.authenticated_method
 			(user = model.send(find_by,username))? user.send(auth,password): nil
 		end
 	end
