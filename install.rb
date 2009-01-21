@@ -89,6 +89,8 @@ while true
 	@hash['database'] = create_config( yaml['database'], ['database'] )
 	puts 'authentication:'
 	@hash['authentication'] = create_config( yaml['authentication'], ['authentication'] )
+	puts 'static_roles:'
+	@hash['static_roles'] = create_config(yaml['static_roles'], ['static_roles'])
 
 		#Output the user's config file
 	puts ""
@@ -116,3 +118,7 @@ file.close
 	File.copy("#{File.dirname(__FILE__)}/user_modules/#{f}",
 						"#{File.dirname(__FILE__)}/../../../lib/#{f}" )
 end
+
+  #Tell the user we are done
+puts ""
+puts "Restless Authentication installation complete"
