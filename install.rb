@@ -111,7 +111,7 @@ file.puts dump_config(@hash)
 file.close
 
 	#copy my modules
-['auth_helper.rb', 'auth_sys.rb'].each do |f|
+['auth_static_filter.rb', 'auth_static_role.rb', 'auth_sys.rb', 'auth_user.rb'].each do |f|
 	puts "Copying #{f}"
 	File.copy("#{File.dirname(__FILE__)}/user_modules/#{f}",
 						"#{File.dirname(__FILE__)}/../../../lib/#{f}" )
