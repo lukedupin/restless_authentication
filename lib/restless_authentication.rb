@@ -60,6 +60,17 @@ class RestlessAuthentication
     (defined? @@static_roles)? @@static_roles: self.load_config(:static_roles, stream_line)
   end
 
+  # Gives the user access to the yaml file
+  def self.[]( param )
+      #Load up just the yaml if it hasn't been loaded yet
+    if !defined? @@yaml
+      @@yaml = YAML::load( File.open(RestlessAuthentication::CONFIG) )
+    end
+
+      #Return whatever index the user is asking
+    @@yaml[param]
+  end
+
   # Returns a list of all the models we deal with
   def self.list_models_human( stream_line = true )
     self.list_models( stream_line, :human )
@@ -69,19 +80,19 @@ class RestlessAuthentication
     tables = Array.new
     tables.push( RestlessAuthentication.database(stream_line).user.model.to_s )
     tables.push( RestlessAuthentication.database(stream_line).role.model.to_s )
-    tables.collect!{|x| x.gsub(/[A-Z]/, '_\1').sub(/^_/,'')}
+    tables.collect!{|x| x.gsub(/([A-Z])/, '_\1').sub(/^_/,'').downcase}
     tables.sort!
     tables.push( "#{tables[0].pluralize}_#{tables[1]}" )
 
       #Convert all these to names to human names
     case type
     when :human
-      return tables.collect{|t| t.split(/_/).collect{|x| x.capitalize}.join}
+      tables.collect!{|t| t.split(/_/).collect{|x| x.capitalize}.join}
     when :both
-      return tables.collect{|t| [t,t.split(/_/).collect{|x| x.capitalize}.join]}
-    else
-      return tables
+      tables.collect!{|t| [t.dup,t.split(/_/).collect{|x| x.capitalize}.join]}
     end
+
+    return tables
   end
 
   # Returns the stack of the methods that are called  zero is the parent method
@@ -97,12 +108,13 @@ class RestlessAuthentication
   # Loads the user's config file into class variables
   def self.load_config( config = :nothing, stream_line = true )
       #Load up the config file
-    yaml = YAML::load( RestlessAuthentication::CONFIG )
+    yaml = YAML::load( File.open(RestlessAuthentication::CONFIG) )
 
       #Populate my class variables
     @@database = self.fill_daml( yaml['database'] )
     @@authentication = self.fill_daml( yaml['authentication'] )
     @@static_roles = self.fill_daml( yaml['static_roles'] )
+    @@yaml = yaml
 
       #Change my special instances to a better form
     @@stream_line = stream_line
@@ -145,5 +157,6 @@ class RestlessAuthentication
       #Go through the yaml file recursing through all the config info
     daml = klass.new
     yaml.each {|key, value| daml.add_accessor(key, fill_daml(value))}
+    return daml
   end
 end

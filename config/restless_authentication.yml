@@ -15,7 +15,7 @@ database:
     model: Role
     user_linkage:
       relationship_type: [many_to_many,one_to_many,local]
-      relationship_field: roles
+      relationship_name: roles
     role_code_field: code
 authentication:
   encryption: [md5,sha1,none]
