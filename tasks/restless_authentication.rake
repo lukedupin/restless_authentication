@@ -56,9 +56,7 @@ namespace :restless do
       puts "#{'Migration Creation Begin'.ljust(30,'-')}"
 
         #Clean out the test database
-      VERSION=0
-      Rake::Task["db:migrate"].execute
-      VERSION=nil
+      Rake::Task["db:drop"].execute
       Rake::Task["db:migrate"].execute
 
         #Create my models list if one doesn't exist already
