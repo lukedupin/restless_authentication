@@ -2,21 +2,26 @@ database:
   user:
     model: User
     uid:
-      user_uid_field: id
+      user_uid_ifield: id
     usernames:
-      username_field: username
+      username_sfield: username
     passwords:
-      plain_text_field: nil
-      encrypted_field: encrypted_password
+      plain_text_sfield: nil
+      encrypted_sfield: encrypted_password
     cookies:
-      token_field: remember_token
-      expires_field: remember_token_expires_at
+      token_sfield: remember_token
+      expires_tfield: remember_token_expires_at
   role:
     model: Role
     user_linkage:
       relationship_type: [many_to_many,one_to_many,local]
       relationship_name: roles
-    role_code_field: code
+    role_code_ifield: code
+  roles_user:
+    model: RolesUser
+    linkage:
+      user_id_ifield: user_id
+      role_id_ifield: role_id
 authentication:
   encryption: [md5,sha1,none]
   password_match: [encrypted_field,plain_text_field]

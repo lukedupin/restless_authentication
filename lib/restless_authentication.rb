@@ -80,9 +80,9 @@ class RestlessAuthentication
     tables = Array.new
     tables.push( RestlessAuthentication.database(stream_line).user.model.to_s )
     tables.push( RestlessAuthentication.database(stream_line).role.model.to_s )
+    tables.push( RestlessAuthentication.database(stream_line).roles_user.model.to_s )
     tables.collect!{|x| x.gsub(/([A-Z])/, '_\1').sub(/^_/,'').downcase}
     tables.sort!
-    tables.push( "#{tables[0].pluralize}_#{tables[1]}" )
 
       #Convert all these to names to human names
     case type
