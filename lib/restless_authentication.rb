@@ -142,7 +142,7 @@ class RestlessAuthentication
   # Build out my dynamic classes from a yaml file
   def self.fill_daml( yaml )
       #If this isn't a hash, don't do anything but return it
-    return yaml if !yaml.is_a? Hash
+    return (yaml.to_s == 'nil')? nil: yaml if !yaml.is_a? Hash
   
       #Create a new class that can add accessors
     klass = Class.new
