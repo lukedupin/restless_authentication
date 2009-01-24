@@ -200,13 +200,13 @@ namespace :restless do
           output.push("  #--Inserted by Restless Authentication")
           case section
           when :user
-            output.push("require 'auth_user.rb'")
+            output.push("require 'restless_user.rb'")
           when :role
-            output.push("require 'auth_static_role.rb'")
+            output.push("require 'restless_static_role.rb'")
           else 
           end
-          output.push( '' )
           output.push("  #--End insert")
+          output.push( '' )
 
             #Create my local variables of who we are editing
           filename = "#{path}/#{code}.rb"
@@ -220,8 +220,12 @@ namespace :restless do
             case section
             when :user
               output.push("#{sp}  has_many :#{db.user.role_relationship}, :class_name => '#{db.role.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+              output.push('')
+              output.push("#{sp}  include RestlessUser")
             when :role
               output.push("#{sp}  belongs_to :#{db.role.user_relationship}, :class_name => '#{db.user.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+              output.push('')
+              output.push("#{sp}  include RestlessStaticRole")
             else
             end
             output.push("#{sp}  #--End insert")
