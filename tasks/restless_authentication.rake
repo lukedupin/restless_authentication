@@ -13,17 +13,6 @@ def class_exists?( name )
   end
 end
 
-#Load the environment we need
-def load_env
-  if !@load_env
-    @load_env = :loaded
-    Rake::Task["environment"].execute
-  end
-
-    #Clean out the test database
-  Rake::Task["db:drop"].execute
-  Rake::Task["db:migrate"].execute
-end
 
 # Jobs usally associtated with restless_authentication installations
 namespace :restless do
@@ -39,9 +28,12 @@ namespace :restless do
     ##
     desc "Used to configure a database to use restless_authentication"
     task :all do
+      RAILS_ENV='test'
+      Rake::Task["environment"].execute
       Rake::Task["restless:setup:models"].execute
       Rake::Task["restless:setup:migrations"].execute
       Rake::Task["restless:setup:model_code"].execute
+      Rake::Task["restless:setup:controller_code"].execute
     end
 
     ##
@@ -53,7 +45,9 @@ namespace :restless do
       puts "#{'Model Creation Begin'.ljust(40,'-')}"
 
       RAILS_ENV='test'
-      load_env
+      Rake::Task["environment"].execute
+      Rake::Task["db:drop"].execute
+      Rake::Task["db:migrate"].execute
 
         #Create my instance variable to keep record of what I've done
       @models = Hash.new
@@ -84,7 +78,9 @@ namespace :restless do
       puts "#{'Migration Creation Begin'.ljust(40,'-')}"
 
       RAILS_ENV='test'
-      load_env
+      Rake::Task["environment"].execute
+      Rake::Task["db:drop"].execute
+      Rake::Task["db:migrate"].execute
 
         #Create my models list if one doesn't exist already
       @models = Hash.new if @models.nil?
@@ -106,7 +102,7 @@ namespace :restless do
             #Loop through all the fields we need for this class
           model_fields[code].each do |k, v|
               #If the model doesn't have this field, then we need to add it
-            if !fields.include?( v )
+            if !fields.include?( v.to_s )
               model_complete = false 
               fields_req[code][k].push( ":#{v}" )
             end
@@ -153,7 +149,7 @@ namespace :restless do
           puts mig
           puts "Adding data to #{filename}"
         else
-          puts "Skipping #{klass} of type #{type}"
+          puts "Skipping #{code} of type #{type}"
         end
 
           #If we were given a filename to update, then add our lines to it
@@ -185,7 +181,9 @@ namespace :restless do
       puts "#{'Model Code Insertion Begin'.ljust(40,'-')}"
 
       RAILS_ENV='test'
-      load_env
+      Rake::Task["environment"].execute
+      Rake::Task["db:drop"].execute
+      Rake::Task["db:migrate"].execute
 
         #Go through all the models I use and insert my code into them
       path = "#{File.dirname(__FILE__)}/../../../../app/models"
@@ -219,13 +217,13 @@ namespace :restless do
             output.push("#{sp}  #--Inserted by Restless Authentication")
             case section
             when :user
-              output.push("#{sp}  has_many :#{db.user.role_relationship}, :class_name => '#{db.role.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+              output.push("#{sp}has_many :#{db.user.role_relationship}, :class_name => '#{db.role.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
               output.push('')
-              output.push("#{sp}  include RestlessUser")
+              output.push("#{sp}include RestlessUser")
             when :role
-              output.push("#{sp}  belongs_to :#{db.role.user_relationship}, :class_name => '#{db.user.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+              output.push("#{sp}belongs_to :#{db.role.user_relationship}, :class_name => '#{db.user.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
               output.push('')
-              output.push("#{sp}  include RestlessStaticRole")
+              output.push("#{sp}include RestlessStaticRole")
             else
             end
             output.push("#{sp}  #--End insert")
@@ -241,6 +239,56 @@ namespace :restless do
       end
       
       puts "#{'Model Code Insertion Finished'.ljust(40,'-')}"
+      puts
+    end
+
+    ##
+    ## Add in the static filters into the user's controller
+    ##
+    desc "Add requried controller code to the application controller"
+    task :controller_code do
+        #Print out what we're doing
+      puts "#{'Controller Code Insertion Begin'.ljust(40,'-')}"
+
+      RAILS_ENV='test'
+      Rake::Task["environment"].execute
+      Rake::Task["db:drop"].execute
+      Rake::Task["db:migrate"].execute
+
+        #Go through all the models I use and insert my code into them
+      path = "#{File.dirname(__FILE__)}/../../../../app/controllers"
+      db = RestlessAuthentication.database(false)
+
+        #Create my first line insert data
+      output = Array.new
+      output.push("  #--Inserted by Restless Authentication")
+      output.push("require 'restless_static_filter.rb'")
+      output.push("  #--End insert")
+      output.push( '' )
+
+        #Create my local variables of who we are editing
+      filename = "#{path}/application.rb"
+      match = "class ApplicationController"
+      result = RestlessAuthentication.insert_code(filename, match, output){
+        |sp, tv|
+        output = Array.new
+        
+          #Insert my code
+        output.push("#{sp}  #--Inserted by Restless Authentication")
+        output.push("#{sp}include RestlessStaticFilter")
+        output.push('')
+        output.push("#{sp}before_filter :restless_filter")
+        output.push("#{sp}  #--End insert")
+      }
+
+         #tell the user what happened
+      if result
+        puts "Successfully wrote data to #{filename}"
+      else
+        puts "** Failed write to #{filename}"
+      end
+
+      puts "#{'Controller Code Insertion Finished'.ljust(40,'-')}"
       puts
     end
   end

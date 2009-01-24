@@ -2,7 +2,7 @@ database:
   user:
     model: User
     uid:
-      user_uid_ifield: id
+      user_uid: id
     usernames:
       username_sfield: username
     passwords:
