@@ -1,5 +1,5 @@
 # Create static role authorization methods
-module AuthStaticRole
+module RestlessStaticRole
 	####################
 	# Instance Methods #
 	####################

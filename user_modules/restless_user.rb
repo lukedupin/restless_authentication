@@ -4,7 +4,7 @@ require 'digest/sha1'
 # Helper functions to take the busy work away from encrypting and compairing
 # passwords.  The contents of all these methods are inserted into the user's
 # model to ensure they know what has been added.
-module AuthHelper
+module RestlessUser
 	####################
 	# Instance Methods #
 	####################

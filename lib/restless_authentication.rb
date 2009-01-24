@@ -72,27 +72,61 @@ class RestlessAuthentication
   end
 
   # Returns a list of all the models we deal with
-  def self.list_models_human( stream_line = true )
-    self.list_models( stream_line, :human )
+  def self.list_models_section( stream_line = true )
+    self.list_models( stream_line, :section )
   end
-  def self.list_models( stream_line = true, type = :code )
+  def self.list_models_klass( stream_line = true )
+    self.list_models( stream_line, :klass )
+  end
+  def self.list_models_code( stream_line = true )
+    self.list_models( stream_line, :code )
+  end
+  def self.list_models( stream_line = true, type = :all )
       #Go through all the different models I need for this to work
+    db = RestlessAuthentication.database(stream_line)
     tables = Array.new
-    tables.push( RestlessAuthentication.database(stream_line).user.model.to_s )
-    tables.push( RestlessAuthentication.database(stream_line).role.model.to_s )
-    tables.push( RestlessAuthentication.database(stream_line).roles_user.model.to_s )
-    tables.collect!{|x| x.gsub(/([A-Z])/, '_\1').sub(/^_/,'').downcase}
-    tables.sort!
+    tables.push([:user, db.user.model.to_s,
+               db.user.model.to_s.gsub(/([A-Z])/,'_\1').sub(/^_/,'').downcase])
+    tables.push([:role, db.role.model.to_s,
+               db.role.model.to_s.gsub(/([A-Z])/,'_\1').sub(/^_/,'').downcase])
 
       #Convert all these to names to human names
     case type
-    when :human
-      tables.collect!{|t| t.split(/_/).collect{|x| x.capitalize}.join}
-    when :both
-      tables.collect!{|t| [t.dup,t.split(/_/).collect{|x| x.capitalize}.join]}
+    when :section
+      tables.collect!{|t| t[0]}
+    when :klass
+      tables.collect!{|t| t[1]}
+    when :code
+      tables.collect!{|t| t[2]}
     end
 
     return tables
+  end
+
+  # Return all the required fields for each model we deal with
+  def self.list_fields( order = :section, stream_line = true )
+      #Get my list of fields we need inside each user's models
+    models = Hash.new
+    self.list_models(false).each do |section,klass,code|
+      idx = section
+      idx = code if order.to_sym == :code
+      idx = klass if order.to_sym == :klass
+      models[idx] = Array.new
+      hash_traverse(RestlessAuthentication['database'][section.to_s]) {|k, v, d|
+          #Check if this is a field, if so, push it onto the stack
+        if k.to_s =~ /field/ and v != 'nil'
+          if    k.to_s =~ /_sfield/
+            models[idx].push( [:string, v.to_sym] )
+          elsif k.to_s =~ /_tfield/
+            models[idx].push( [:timestamp, v.to_sym] )
+          elsif k.to_s =~ /_ifield/
+            models[idx].push( [:integer, v.to_sym] )
+          end
+        end
+      }
+    end
+
+    return models
   end
 
   # Returns the stack of the methods that are called  zero is the parent method
@@ -102,6 +136,57 @@ class RestlessAuthentication
       result.push( stk.gsub(/.*`([^']*)'.*/, '\1').to_sym) if stk.include?('`')
     end
     return result
+  end
+
+  # Insert code into a file
+  # The proc is called when it is time to insert data
+  # The proc should return an array which will be inserted into the file
+  def self.insert_code( filename, search, first_line = [], &e )
+      #Quit if our params aren't valid
+    return false if filename.nil? or e.nil? or !File.exists?( filename )
+
+      #Create my local variables
+    output = Array.new(first_line)
+    state = :search
+    sp = ''
+    tv = ''
+
+      #Read in all the data of this file
+    File.open(filename).readlines.each do |line|
+      case state
+      when :search        #Search for the create table call
+        if line =~ /^=begin/
+          state = :comment_block
+        elsif line.sub(/#.*/,'') =~ /#{search}/
+          state = :insert
+          sp = line.sub(/#{search}.*/, '  ').chomp
+          tv = line.sub(/.*\|[\t ]*([a-zA-Z0-9_]+).*/, '\1').chomp
+        end
+      when :comment_block #Skip over a comment block
+        state = :search if line =~ /^=end/
+      when :insert        #Insert my fields into this baby
+        e.call( sp, tv ).each {|ul| output.push( ul )}
+        state = :done
+      else                #Likely in the done case
+      end
+
+        #Always keep the original contents
+      output.push(line)
+    end
+
+      #Write the migration back out, updated with the new fields
+    file = File.open(filename, 'w')
+    output.each {|line| file.puts line}
+    file.close
+
+    return true
+  end
+
+  # This method recurses through a hash passing the data to a proc
+  def self.hash_traverse( hash, d = Array.new, &p )
+    hash.each do |k, v|
+      (v.is_a? Hash)? self.hash_traverse(v, d.dup.push(k), &p): p.call(k, v, d)
+    end
   end
 
   private
@@ -142,7 +227,11 @@ class RestlessAuthentication
   # Build out my dynamic classes from a yaml file
   def self.fill_daml( yaml )
       #If this isn't a hash, don't do anything but return it
-    return (yaml.to_s == 'nil')? nil: yaml if !yaml.is_a? Hash
+    if !yaml.is_a? Hash
+      return nil if yaml.to_s == 'nil'
+      return yaml.to_sym if yaml.is_a? String
+      return yaml
+    end
   
       #Create a new class that can add accessors
     klass = Class.new

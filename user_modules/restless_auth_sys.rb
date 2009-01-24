@@ -2,7 +2,7 @@
 #
 # The authorization system provides user hooks to the acts_when_authorized
 # plugin.  This portion deals specifically with user session management.
-module UserAuthSys
+module RestlessAuthSystem
 	#######################
 	# User Specific Needs #
 	#######################

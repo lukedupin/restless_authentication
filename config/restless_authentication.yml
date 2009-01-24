@@ -11,17 +11,12 @@ database:
     cookies:
       token_sfield: remember_token
       expires_tfield: remember_token_expires_at
+    role_relationship: roles
   role:
     model: Role
-    user_linkage:
-      relationship_type: [many_to_many,one_to_many,local]
-      relationship_name: roles
     role_code_ifield: code
-  roles_user:
-    model: RolesUser
-    linkage:
-      user_id_ifield: user_id
-      role_id_ifield: role_id
+    user_id_ifield: user_id
+    user_relationship: user
 authentication:
   encryption: [md5,sha1,none]
   password_match: [encrypted_field,plain_text_field]

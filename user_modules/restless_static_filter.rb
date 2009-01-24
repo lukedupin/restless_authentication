@@ -1,7 +1,7 @@
-require 'acts_when_authorized.rb'
+require 'restless_authentication.rb'
 
 # Create static authorization filters
-module AuthStaticFilter
+module RestlessStaticFilter
 	####################
 	# Instance Methods #
 	####################

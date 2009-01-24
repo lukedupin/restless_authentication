@@ -2,11 +2,6 @@ require "#{File.dirname(__FILE__)}/../lib/restless_authentication"
 
 #Used to read in data safely, gets inside rails has issues
 def readline; $stdin.readline; end
-def hashTraverse( hash, d = Array.new, &p )
-  hash.each do |k, v|
-    (v.is_a? Hash)? hashTraverse(v, d.dup.push(k), &p): p.call(k, v, d)
-  end
-end
 
 #Returns true if the a class exists by the given name
 def class_exists?( name )
@@ -18,29 +13,53 @@ def class_exists?( name )
   end
 end
 
+#Load the environment we need
+def load_env
+  if !@load_env
+    @load_env = :loaded
+    Rake::Task["environment"].execute
+  end
+
+    #Clean out the test database
+  Rake::Task["db:drop"].execute
+  Rake::Task["db:migrate"].execute
+end
+
 # Jobs usally associtated with restless_authentication installations
 namespace :restless do
+  ##
+  ## Define the default task
+  ##
+  desc 'Default: run all tasks'
+  task :setup => ["setup:all"]
+
   namespace :setup do
-    #Wrapper to call all the database setup
+    ##
+    ## Wrapper to call all the database setup
+    ##
     desc "Used to configure a database to use restless_authentication"
-    task :database do
-      RAILS_ENV='test'
-      Rake::Task["environment"].execute
+    task :all do
       Rake::Task["restless:setup:models"].execute
       Rake::Task["restless:setup:migrations"].execute
       Rake::Task["restless:setup:model_code"].execute
     end
 
-    #Ensure the user has created models for the user tables
+    ##
+    ## Ensure the user has created models for the user tables
+    ##
     desc "Create models for the user class and static roles"
-    task :models => :environment do
-      puts "#{'Model Creation Begin'.ljust(30,'-')}"
+    task :models do
+      #Start building out models
+      puts "#{'Model Creation Begin'.ljust(40,'-')}"
+
+      RAILS_ENV='test'
+      load_env
 
         #Create my instance variable to keep record of what I've done
       @models = Hash.new
 
         #Go through all the different models I need for this to work
-      RestlessAuthentication.list_models(false, :both).each do |code,klass|
+      RestlessAuthentication.list_models(false).each do |section,klass,code|
         #check if the model in the config exists
         if !class_exists?(klass)
           puts "Generating #{klass}"
@@ -53,52 +72,43 @@ namespace :restless do
         end
       end
 
-      puts "#{'Model Creation Finished'.ljust(30,'-')}"
+      puts "#{'Model Creation Finished'.ljust(40,'-')}"
       puts
     end
 
-    #Ensure the user has created models for the user tables
+    ##
+    ## Ensure the user has created models for the user tables
+    ##
     desc "Create migrations for the fields we need"
-    task :migrations => :environment do
-      puts "#{'Migration Creation Begin'.ljust(30,'-')}"
+    task :migrations do
+      puts "#{'Migration Creation Begin'.ljust(40,'-')}"
 
-        #Clean out the test database
-      Rake::Task["db:drop"].execute
-      Rake::Task["db:migrate"].execute
+      RAILS_ENV='test'
+      load_env
 
         #Create my models list if one doesn't exist already
       @models = Hash.new if @models.nil?
 
         #Get my list of fields we need inside each user's models
-      @model_fields = Hash.new
-      @fields_req = Hash.new
-      RestlessAuthentication.list_models(false, :both).each do |code,klass|
-        @model_fields[code] = Array.new
-        @fields_req[code] = { :string => [], :timestamp => [], :integer => [] }
-        hashTraverse(RestlessAuthentication['database'][code]) { |k, v, depth|
-          @model_fields[code].push( [k.to_s, v] ) if k.to_s =~ /field/ and v != 'nil'
-        }
-      end
+      model_fields = RestlessAuthentication.list_fields( :code, false )
+      fields_req = Hash.new
 
         #Now we are going to check each model and ensure they have all the
         #fields we need, if they don't then add it
-      RestlessAuthentication.list_models(false, :both).each do |code,klass|
+      RestlessAuthentication.list_models(false).each do |section,klass,code|
           #First we need to ensure that the model exists, cause it needs to
         if class_exists?(klass)
             #If the model already has all the fields we need, then do nothing
           model_complete = true
           fields = eval(klass).column_names
-          @model_fields[code].each do |k, v|
+          fields_req[code] = { :string => [], :timestamp => [], :integer => [] }
+
+            #Loop through all the fields we need for this class
+          model_fields[code].each do |k, v|
               #If the model doesn't have this field, then we need to add it
             if !fields.include?( v )
               model_complete = false 
-              if    k =~ /_sfield/
-                @fields_req[code][:string].push( ":#{v}" )
-              elsif k =~ /_tfield/
-                @fields_req[code][:timestamp].push( ":#{v}" )
-              elsif k =~ /_ifield/
-                @fields_req[code][:integer].push( ":#{v}" )
-              end
+              fields_req[code][k].push( ":#{v}" )
             end
           end
 
@@ -148,46 +158,86 @@ namespace :restless do
 
           #If we were given a filename to update, then add our lines to it
         if !filename.nil?
-          File.open(filename).readlines.each do |line|
-            case state
-            when :search        #Search for the create table call
-              if line =~ /^=begin/
-                state = :comment_block
-              elsif line.sub(/#.*/,'') =~ /create_table[\t ]+:#{code.pluralize}/
-                state = :insert
-                @sp = line.sub(/create_table.*/, '  ').chomp
-                @tv = line.sub(/.*\|[\t ]*([a-zA-Z0-9_]+).*/, '\1').chomp
-              end
-            when :comment_block #Skip over a comment block
-              state = :search if line =~ /^=end/
-            when :insert        #Insert my fields into this baby
-              output.push("#{@sp}  #--Inserted by Restless Authentication")
-              @fields_req[code].sort{|a,b| a[0].to_s<=>b[0].to_s}.each do |t, v|
-                output.push( "#{@sp}#{@tv}.#{t} #{v.join(', ')}") if v.size > 0
-              end
-              output.push("#{@sp}  #--End insert")
-              state = :done
-            else                #Likely in the done case
+          match = "create_table[\\t ]+:#{code.pluralize}"
+          RestlessAuthentication.insert_code( filename, match ) { |sp, tv|
+            output = Array.new
+            
+              #Insert my code
+            output.push("#{sp}  #--Inserted by Restless Authentication")
+            fields_req[code].sort{|a,b| a[0].to_s<=>b[0].to_s}.each do |t, v|
+              output.push( "#{sp}#{tv}.#{t} #{v.join(', ')}") if v.size > 0
             end
-
-              #Always keep the original contents
-            output.push(line)
-          end
-
-            #Write the migration back out, updated with the new fields
-          file = File.open(filename, 'w')
-          output.each {|line| file.puts line}
-          file.close
+            output.push("#{sp}  #--End insert")
+          }
         end
       end
 
-      puts "#{'Migration Creation Finished'.ljust(30,'-')}"
+      puts "#{'Migration Creation Finished'.ljust(40,'-')}"
       puts
     end
 
-    #Ensure the user has created models for the user tables
+    ##
+    ## Ensure the user has created models for the user tables
+    ##
     desc "Add the requried model code into the user's models"
-    task :model_code => :environment do
+    task :model_code do
+        #Print out what we're doing
+      puts "#{'Model Code Insertion Begin'.ljust(40,'-')}"
+
+      RAILS_ENV='test'
+      load_env
+
+        #Go through all the models I use and insert my code into them
+      path = "#{File.dirname(__FILE__)}/../../../../app/models"
+      db = RestlessAuthentication.database(false)
+      RestlessAuthentication.list_models(false).each do |section,klass,code|
+          #ensure that we already have a class
+        if !class_exists?(klass)
+          puts "** Error, no class #{klass}, skipping"
+        else
+            #Create my first line insert data
+          output = Array.new
+          output.push("  #--Inserted by Restless Authentication")
+          case section
+          when :user
+            output.push("require 'auth_user.rb'")
+          when :role
+            output.push("require 'auth_static_role.rb'")
+          else 
+          end
+          output.push( '' )
+          output.push("  #--End insert")
+
+            #Create my local variables of who we are editing
+          filename = "#{path}/#{code}.rb"
+          match = "class #{klass.to_s}"
+          result = RestlessAuthentication.insert_code(filename, match, output){
+            |sp, tv|
+            output = Array.new
+            
+              #Insert my code
+            output.push("#{sp}  #--Inserted by Restless Authentication")
+            case section
+            when :user
+              output.push("#{sp}  has_many :#{db.user.role_relationship}, :class_name => '#{db.role.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+            when :role
+              output.push("#{sp}  belongs_to :#{db.role.user_relationship}, :class_name => '#{db.user.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+            else
+            end
+            output.push("#{sp}  #--End insert")
+          }
+
+            #tell the user what happened
+          if result
+            puts "Successfully wrote data to #{filename}"
+          else
+            puts "** Failed write to #{filename}"
+          end
+        end
+      end
+      
+      puts "#{'Model Code Insertion Finished'.ljust(40,'-')}"
+      puts
     end
   end
 end
