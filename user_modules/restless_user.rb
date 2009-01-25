@@ -17,7 +17,11 @@ module RestlessUser
 	end
 
   # Overide method to authomatically encrypt passwords
-	def storePassword(password)
+	def storePassword(password, pass2 = nil )
+      #if the user gave us two passwords, ensure they match
+    return false if !pass2.nil? and password != pass2
+
+      #encrypt the password and store it
 		pass = RestlessAuthentication.database.user.passwords
 		crypt = RestlessAuthentication.authentication.helpers.encryption_method
 		self.send("#{pass.plain_text_field}=", password) if pass.plain_text_field
@@ -68,6 +72,41 @@ module RestlessUser
       raise "Unknown config/restless_authentication.yml: database.role.user_linkage.relationship_type: ( #{type} ).  Should be [many_to_many,one_to_many,local]"
     end
   end
+
+  # Give a static role to a given user
+  def grant_role( roles )
+    roles = [roles] if !roles.is_a? Array
+
+      #Get a list of roles
+    r = self.send(RestlessAuthentication.user.role_relationship).collect {|x| 
+      x.send(RestlessAuthentication.database.role.role_code_ifield)
+    }
+    r.delete_if {|x| roles.include?(x)}
+
+      #Add any roles that are still out there
+    roles.each do |role|
+      self.send(RestlessAuthentication.user.role_relationship) << Role.create_role(role)
+    end
+
+      #Save user
+    self.save
+    return self
+  end
+
+  # Revoke a list of rights a user has
+  def revoke_role( roles )
+    roles = [roles] if !roles.is_a? Array
+
+      #Get a list of roles
+    self.send(RestlessAuthentication.user.role_relationship).each do |x| 
+      x.destroy
+    end
+
+      #Save user
+    self.save
+    return self
+  end
+
 
 	#################
 	# Class Methods #

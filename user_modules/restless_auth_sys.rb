@@ -39,6 +39,18 @@ module RestlessAuthSystem
 	def store_login_to_cookie
 	end
 
+  # Logout of the system
+  def logout_keeping_session!
+    @current_user = false     # not logged in, and don't do it for me
+    kill_remember_cookie!     # Kill client-side auth cookie
+    session[auth.session_login.uid_field] = nil
+  end
+
+  # Kill the user's cookie
+  def kill_remember_cookie!
+  end
+
+
 
 	################
 	# System Hooks #

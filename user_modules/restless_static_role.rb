@@ -11,7 +11,7 @@ module RestlessStaticRole
     # Defines roles a set of roles in the class
     # This method can take arrays of symbols but it is much safer to pass
     # a hash with the numbers increasing {:unknown => 0, :admin => 1, :bob => 4}
-    def create_role( roles )
+    def define_roles( roles )
         #If this is the first time we are calling this, make new class variables
       if !defined? @@role_list
         @@role_list = Hash.new
@@ -47,6 +47,14 @@ module RestlessStaticRole
     def code_to_role( code )
       return nil if !defined? @@role_list_inv
       return @@role_list_inv[code]
+    end
+
+    # Create a role in the database
+    def create_role( sym )
+      role = Role.new
+      role.send("#{RestlessAuthentication.database.role.role_code_ifield}=", 
+                Role.role2code( sym ) )
+      return role
     end
 	end
 

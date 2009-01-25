@@ -56,7 +56,7 @@ module RestlessStaticFilter
     # to all functions.  If changable is passed, then the methods that change
     # the database are given the roles.  If viewable is passed, the methods that
     # show data are added to.  Any other value is aciton specific
-    def add_required_roles( action, roles, count = 1 )
+    def define_required_roles( action, roles, count = 1 )
         #Create my action array
       act_ary = Array.new
       roles = [roles] if !roles.is_a? Array
