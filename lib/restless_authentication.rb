@@ -204,8 +204,8 @@ class RestlessAuthentication
       #Change my special instances to a better form
     @@stream_line = stream_line
     if stream_line
-      @@database.user.model = eval("@@database.user.model")
-      @@database.role.model = eval("@@database.role.model")
+      @@database.user.model = eval(@@database.user.model.to_s)
+      @@database.role.model = eval(@@database.role.model.to_s)
     end
 
       #Return a newly loaded config if requested
@@ -237,7 +237,7 @@ class RestlessAuthentication
     klass = Class.new
     klass.class_eval do
       def add_accessor(acs, value)
-        eval("class << self; attr_reader :#{acs}; end")
+        eval("class << self; attr_accessor :#{acs}; end")
         instance_variable_set("@#{acs}", value)
         self
       end

@@ -1,7 +1,8 @@
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require "#{File.dirname(__FILE__)}/tasks/restless_authentication.rake"
+require "#{File.dirname(__FILE__)}/tasks/restless_setup.rake"
+require "#{File.dirname(__FILE__)}/tasks/restless_system.rake"
 
 desc 'Default: run unit tests.'
 task :default => :test

@@ -29,6 +29,4 @@
 # What makes this plugin so different?  A clear vision of how and why:
 #
 # * User Authentication - User authentication defines the 
-
-code access to the system.  The standard user role's model defining their system access doesn't facilitate complex business cases.  What the user's role does is define what code they have a right to access and run.  That means user authentication should provide logging in and code access checks. 
 # * 

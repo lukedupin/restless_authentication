@@ -120,3 +120,9 @@ end
   #Tell the user we are done
 puts ""
 puts "Restless Authentication installation complete"
+puts ""
+puts "Continue your setup by running:"
+puts "\t1. rake restless:setup"
+puts "\t2. rake restless:system"
+puts "\t3. rake db:migrate"
+puts ""

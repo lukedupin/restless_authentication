@@ -163,6 +163,7 @@ namespace :restless do
             fields_req[code].sort{|a,b| a[0].to_s<=>b[0].to_s}.each do |t, v|
               output.push( "#{sp}#{tv}.#{t} #{v.join(', ')}") if v.size > 0
             end
+            output.push( "#{sp}#{tv}.timestamps")
             output.push("#{sp}  #--End insert")
           }
         end
