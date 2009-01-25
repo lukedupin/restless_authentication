@@ -106,7 +106,7 @@ namespace :restless do
       path = "#{File.dirname(__FILE__)}/../../../.."
 
         #Insert the admin role into our roles model
-      name = RestlessAuthentication.models_names(:role, :code, false)
+      name = RestlessAuthentication.model_names(:role, :code, false)
       puts "Creating admin role in app/models/#{name}.rb"
       filename = "#{path}/app/models/#{name}.rb"
       match = "class Role"
