@@ -72,7 +72,7 @@ class RestlessAuthentication
   end
 
   # Return both possible names of a table based on the section
-  def self.model_names( model_name, type, streamline = true )
+  def self.model_names( model_name, type, stream_line = true )
       #Go through all the different models I need for this to work
     db = RestlessAuthentication.database(stream_line)
     ary = nil
