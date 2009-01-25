@@ -71,6 +71,32 @@ class RestlessAuthentication
     @@yaml[param]
   end
 
+  # Return both possible names of a table based on the section
+  def self.model_names( model_name, type, streamline = true )
+      #Go through all the different models I need for this to work
+    db = RestlessAuthentication.database(stream_line)
+    ary = nil
+    if    model_name.to_sym == :user
+      ary = [db.user.model.to_s,
+             db.user.model.to_s.gsub(/([A-Z])/,'_\1').sub(/^_/,'').downcase]
+    elsif model_name.to_sym == :role
+      ary = [db.role.model.to_s,
+             db.role.model.to_s.gsub(/([A-Z])/,'_\1').sub(/^_/,'').downcase]
+    else
+      return :unknown
+    end
+
+      #Convert all these to names to human names
+    case type
+    when :klass
+      return ary[0]
+    when :code
+      return ary[1]
+    else
+      return ary
+    end
+  end
+
   # Returns a list of all the models we deal with
   def self.list_models_section( stream_line = true )
     self.list_models( stream_line, :section )

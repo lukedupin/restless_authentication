@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/../lib/restless_authentication"
+require 'ftools'
 
 #Used to read in data safely, gets inside rails has issues
 def readline; $stdin.readline; end
@@ -31,8 +32,9 @@ namespace :restless do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
       Rake::Task["restless:system:user"].execute
-#      Rake::Task["restless:system:session"].execute
-      Rake::Task["restless:system:default_user"].execute
+      Rake::Task["restless:system:create_login_system"].execute
+      Rake::Task["restless:system:create_admin_role"].execute
+      Rake::Task["restless:system:create_admin_user"].execute
     end
 
     ##
@@ -79,8 +81,13 @@ namespace :restless do
       puts `ruby #{File.dirname(__FILE__)}/../../../../script/generate controller sessions`
 
         #Copy my session controller
+      puts "Inserting the default session controller"
       File.copy( "#{File.dirname(__FILE__)}/../app/controllers/sessions_controller.rb", "#{File.dirname(__FILE__)}/../../../../app/controllers/sessions_controller.rb")
+
+      puts "Inserting the default session login view"
       File.copy( "#{File.dirname(__FILE__)}/../app/views/sessions/new.html.erb", "#{File.dirname(__FILE__)}/../../../../app/views/sessions/new.html.erb")
+
+      puts "Inserting the default session layout"
       File.copy( "#{File.dirname(__FILE__)}/../app/views/layouts/session.html.erb", "#{File.dirname(__FILE__)}/../../../../app/views/layouts/session.html.erb")
 
       puts "#{'Finished basic session management'.ljust(40,'-')}"
@@ -99,7 +106,9 @@ namespace :restless do
       path = "#{File.dirname(__FILE__)}/../../../.."
 
         #Insert the admin role into our roles model
-      filename = "#{path}/app/models/role.rb"
+      name = RestlessAuthentication.models_names(:role, :code, false)
+      puts "Creating admin role in app/models/#{name}.rb"
+      filename = "#{path}/app/models/#{name}.rb"
       match = "class Role"
       result = RestlessAuthentication.insert_code(filename, match){
         |sp, tv|
@@ -109,11 +118,12 @@ namespace :restless do
         output.push("#{sp}  #--Inserted by Restless Authentication")
         output.push("#{sp}define_roles { :admin => 1 }")
         output.push("#{sp}  #--End insert")
+        output.push('')
       }
   
         #Add the admin role requirement to editing users
-      filename = "#{path}/app/controllers/user_controller.rb"
-      match = "class UserController"
+      filename = "#{path}/app/controllers/users_controller.rb"
+      match = "class UsersController"
       result = RestlessAuthentication.insert_code(filename, match){
         |sp, tv|
         output = Array.new
@@ -122,6 +132,7 @@ namespace :restless do
         output.push("#{sp}  #--Inserted by Restless Authentication")
         output.push("#{sp}define_required_roles(:all, :admin)")
         output.push("#{sp}  #--End insert")
+        output.push('')
       }
 
       puts "#{'Finished admin role'.ljust(40,'-')}"
@@ -131,8 +142,8 @@ namespace :restless do
     ##
     ## Add the admin role into our system
     ##
-    desc "Create the admin role inside the system"
-    task :create_admin do
+    desc "Create the default admin user"
+    task :create_admin_user do
       #Create a user scaffold
       puts "#{'Creating admin user'.ljust(40,'-')}"
 
@@ -141,34 +152,34 @@ namespace :restless do
       puts `ruby #{path}/script/generate migration create_default_admin`
 
         #Find the migration
-      file = nil
+      filename = nil
       `ls #{path}/db/migrate/`.split(/\n/).each do |mig|
-        file = mig if mig =~ /create_default_admin/
+        filename = "#{path}/db/migrate/#{mig}" if mig =~ /create_default_admin/
       end
 
-      if !file.nil?
+      if !filename.nil?
           #Create my add admin user section
-        match = "self\\.up"
+        match = "def self.up"
         RestlessAuthentication.insert_code( filename, match ) { |sp, tv|
           output = Array.new
 
             #Insert my code
           output.push("#{sp}  #--Inserted by Restless Authentication")
           output.push("#{sp}user = User.new")
-          output.push("#{sp}user.#{RestlessAuthentication.database.user.usernames.username_sfield} = 'admin'")
-          output.push("#{sp}user.#{RestlessAuthentication.authentication.helpers.password_method}( 'restless', 'restless' )")
+          output.push("#{sp}user.#{RestlessAuthentication.database(false).user.usernames.username_sfield} = 'admin'")
+          output.push("#{sp}user.#{RestlessAuthentication.authentication(false).helpers.password_method}( 'restless', 'restless' )")
           output.push("#{sp}user.save")
           output.push("#{sp}  #--End insert")
         }
 
           #Create my remove admin section
-        match = "self\\.down"
+        match = "def self.down"
         RestlessAuthentication.insert_code( filename, match ) { |sp, tv|
           output = Array.new
 
             #Insert my code
           output.push("#{sp}  #--Inserted by Restless Authentication")
-          output.push("#{sp}user = User.find_by_#{RestlessAuthentication.database.user.usernames.username_sfield}( 'admin' )"
+          output.push("#{sp}user = User.find_by_#{RestlessAuthentication.database(false).user.usernames.username_sfield}( 'admin' )")
           output.push("#{sp}user.destroy if !user.nil?")
           output.push("#{sp}  #--End insert")
         }
