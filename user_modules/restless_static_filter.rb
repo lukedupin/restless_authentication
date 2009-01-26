@@ -86,7 +86,7 @@ module RestlessStaticFilter
         roles.each do |role|
           @@filter_roles[act] = Hash.new if @@filter_roles[act].nil? 
           @@filter_roles[act][count] = Array.new if @@filter_roles[act][count].nil?
-          @@filter_roles[act][count].push(role) if !@@filter_roles[count].contains?(role)
+          @@filter_roles[act][count].push(role) if !@@filter_roles[act][count].include?(role)
         end
       end
     end

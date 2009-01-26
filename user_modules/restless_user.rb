@@ -23,14 +23,14 @@ module RestlessUser
 
       #encrypt the password and store it
 		pass = RestlessAuthentication.database.user.passwords
-		crypt = RestlessAuthentication.authentication.helpers.encryption_method
-		self.send("#{pass.plain_text_field}=", password) if pass.plain_text_field
-		self.send("#{pass.encrypted_field}=", self.send(crypt, password)) if pass.encrypted_field
+		crypt = RestlessAuthentication.authentication.encryption
+		self.send("#{pass.plain_text_sfield}=", password) if pass.plain_text_sfield
+		self.send("#{pass.encrypted_sfield}=", crypt.call(password)) if pass.encrypted_sfield
 	end
 
 	# Encrypt based on the encryption method defined: md5, sha1, or none
 	def encrypt(password)
-		send(RestlessAuthentication.authentication.encryption, password)
+		RestlessAuthentication.authentication.encryption.call(password)
 	end
 
   # Returns true if the current class contains the requested role(s)
@@ -54,23 +54,11 @@ module RestlessUser
 
   # Return an array of all the static roles the user contains
   def list_roles
-    field = RestlessAuthentication.database.role.role_code_field
-    type = RestlessAuthentication.database.role.user_linkage.relationship_type
-    linkage=RestlessAuthentication.database.role.user_linkage.relationship_field
+    field = RestlessAuthentication.database.role.role_code_ifield
+    roles = RestlessAuthentication.database.user.role_relationship
   
       #Find all possible instances of the requested roles
-    case type
-    when :many_to_many
-      return self.send(linkage)
-    when :one_to_many
-      return [self.send(linkage).send(field)]
-    when :local
-      return [self.send(field)]
-    when :office_space
-      raise "PC load letter"
-    else
-      raise "Unknown config/restless_authentication.yml: database.role.user_linkage.relationship_type: ( #{type} ).  Should be [many_to_many,one_to_many,local]"
-    end
+    return self.send(roles).collect{|x| x.send(field)}
   end
 
   # Give a static role to a given user
@@ -115,29 +103,10 @@ module RestlessUser
 		# Authenticate a user based on username and password
 		def authenticate( username, password )
 			model = RestlessAuthentication.database.user.model	
-			find_by = RestlessAuthentication.database.user.usernames.username_find
+			find_by = "find_by#{RestlessAuthentication.database.user.usernames.username}"
 			auth = RestlessAuthentication.authentication.helpers.authenticated_method
 			(user = model.send(find_by,username))? user.send(auth,password): nil
 		end
-	end
-
-	#################
-	# Local Methods #
-	#################
-	private
-	# Create an md5 hex digest
-	def self.md5( digest )
-		Digest::MD5.hexdigest(digest)
-	end
-
-	# Create an sha1 hex digest
-	def self.sha1( digest )
-		Digest::SHA1.hexdigest(digest)
-	end
-
-	# This method is a pass through that returns the first param given
-	def self.none( digest )
-		digest
 	end
 
 	private

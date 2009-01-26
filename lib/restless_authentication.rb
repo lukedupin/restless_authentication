@@ -40,6 +40,21 @@ class RestlessAuthentication
   #################
   # Class Methods #
   #################
+  # Create an md5 hex digest
+  def self.md5( digest )
+    Digest::MD5.hexdigest(digest)
+  end
+
+  # Create an sha1 hex digest
+  def self.sha1( digest )
+    Digest::SHA1.hexdigest(digest)
+  end
+
+  # This method is a pass through that returns the first param given
+  def self.none( digest )
+    digest
+  end
+
   # Do a configuration reload
   def self.reload_config( stream_line = true )
     self.load_config( :nothing, stream_line )
@@ -47,17 +62,17 @@ class RestlessAuthentication
 
   # Returns the database section of my config file
   def self.database( stream_line = true )
-    (defined? @@database)? @@database: self.load_config(:database, stream_line)
+    (defined? @@database and defined? @@stream_line and @@stream_line == stream_line)? @@database: self.load_config(:database, stream_line)
   end
 
   # Returns the authentication section of my config file
   def self.authentication( stream_line = true )
-    (defined? @@authentication)? @@authentication: self.load_config(:auth, stream_line)
+    (defined? @@authentication and defined? @@stream_line and @@stream_line == stream_line)? @@authentication: self.load_config(:auth, stream_line)
   end
 
   # Returns the static_roles section of my config file
   def self.static_roles( stream_line = true )
-    (defined? @@static_roles)? @@static_roles: self.load_config(:static_roles, stream_line)
+    (defined? @@static_roles and defined? @@stream_line and @@stream_line == stream_line)? @@static_roles: self.load_config(:static_roles, stream_line)
   end
 
   # Gives the user access to the yaml file
@@ -232,6 +247,7 @@ class RestlessAuthentication
     if stream_line
       @@database.user.model = eval(@@database.user.model.to_s)
       @@database.role.model = eval(@@database.role.model.to_s)
+      @@authentication.encryption = RestlessAuthentication.method(@@authentication.encryption)
     end
 
       #Return a newly loaded config if requested
