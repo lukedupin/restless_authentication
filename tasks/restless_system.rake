@@ -80,6 +80,24 @@ namespace :restless do
         #Create my session controller
       puts `ruby #{File.dirname(__FILE__)}/../../../../script/generate controller sessions`
 
+        #Add the sessions route
+      path = "#{File.dirname(__FILE__)}/../../../.."
+
+        #Insert the admin role into our roles model
+      puts "Creating session route"
+      filename = "#{path}/config/routes.rb"
+      match = "map.resources :users"
+      result = RestlessAuthentication.insert_code(filename, match){
+        |sp, tv|
+        output = Array.new
+
+          #Insert my code
+        output.push("#{sp}  #--Inserted by Restless Authentication")
+        output.push("#{sp}map.resources :sessions")
+        output.push("#{sp}  #--End insert")
+        output.push('')
+      }
+
         #Copy my session controller
       puts "Inserting the default session controller"
       File.copy( "#{File.dirname(__FILE__)}/../app/controllers/sessions_controller.rb", "#{File.dirname(__FILE__)}/../../../../app/controllers/sessions_controller.rb")
@@ -116,7 +134,7 @@ namespace :restless do
 
           #Insert my code
         output.push("#{sp}  #--Inserted by Restless Authentication")
-        output.push("#{sp}define_roles { :admin => 1 }")
+        output.push("#{sp}define_roles( { :admin => 1 } )")
         output.push("#{sp}  #--End insert")
         output.push('')
       }
