@@ -109,7 +109,7 @@ namespace :restless do
       name = RestlessAuthentication.model_names(:role, :code, false)
       puts "Creating admin role in app/models/#{name}.rb"
       filename = "#{path}/app/models/#{name}.rb"
-      match = "class Role"
+      match = "include RestlessStaticRole"
       result = RestlessAuthentication.insert_code(filename, match){
         |sp, tv|
         output = Array.new
