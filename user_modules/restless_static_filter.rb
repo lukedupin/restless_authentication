@@ -21,16 +21,16 @@ module RestlessStaticFilter
       #Now we check figure out what function is calling us
     if roles.nil?
         #Quit if we can't find any roles to check for
-      return policy if !defined? @@filter_roles
+      return policy if !static_roles
 
         #Attempt to dirive the function that is calling us
       func = RestlessAuthentication.trace[1].to_s.to_sym
 
         #Store my roles role pool into the local role variables
-      return policy if @@filter_roles[func].nil?
+      return policy if static_roles[func].nil?
 
         #Check if this user meets any of the valid access requirements
-      @@filter_roles[func].each do |count, roles|
+      static_roles[func].each do |count, roles|
         return true if user.has_role?(roles, count)
       end
     else
@@ -41,8 +41,44 @@ module RestlessStaticFilter
     return false
   end
 
-      #If no roles are defined, throw an exception to tell them whats up
-#    raise "No roles defined inside #{self.class}" if !defined? @@role_list
+
+  # Before filter that requires a user to have static roles access to this
+  # controller's specific action it is trying to work off of
+  def restless_filter
+      #Store my filter policy
+    policy = RestlessAuthentication.static_roles.filter_policy == :black_list
+
+      #Return that we failed if there is no way to know what action to use
+    return policy if !params[:action] or !params[:controller]
+    action = params[:action].to_sym
+    controller = params[:controller].to_sym
+
+      #Raise an error if my filter roles aren't even defined yet
+    if !static_roles
+      return true if policy #Exit out if we are black listed on errors
+      raise "No roles defined for restless_filter inside #{controller} #{self}"
+    end
+        
+      #Exit if this action isn't defined to have any roles
+    return policy if static_roles[action].nil?
+      
+      #Return false if there is no user and there are defined roles
+    return false if !current_user
+
+      #Go through all the requested roles checking if the user meets any
+    static_roles[action].each do |count, roles|
+      return true if current_user.has_role?( roles, count )
+    end
+      
+      #User isn't okay to do what they are trying to do
+    return false
+  end
+
+  # This is an accessor which talks to the super class to get access rights
+  def static_roles
+    self.class.static_roles
+  end
+
 
 	#################
 	# Class Methods #
@@ -76,10 +112,7 @@ module RestlessStaticFilter
       end
 
         #Create my class objects to hold my list of static role auth
-      if !defined? @@filter_roles
-        @@filter_roles = Hash.new
-#Make the counts dynamic        @@filter_count = Hash.new
-      end
+      @@filter_roles = Hash.new if !defined? @@filter_roles
 
         #Add all these roles to all our actions we work with
       act_ary.each do |act|
@@ -90,39 +123,12 @@ module RestlessStaticFilter
         end
       end
     end
+
+    # This is an accessor to the user's static access rights
+    def static_roles
+      (defined? @@filter_roles)? @@filter_roles: nil
+    end
 	end
-
-  # Before filter that requires a user to have static roles access to this
-  # controller's specific action it is trying to work off of
-  def restless_filter
-      #Store my filter policy
-    policy = RestlessAuthentication.static_roles.filter_policy == :black_list
-
-      #Return that we failed if there is no way to know what action to use
-    return policy if !params[:action] or !params[:controller]
-    action = params[:action].to_sym
-    controller = params[:controller].to_sym
-
-      #Raise an error if my filter roles aren't even defined yet
-    if !defined? @@filter_roles
-      return true if policy #Exit out if we are black listed on errors
-      raise "No roles defined for restless_filter inside #{controller}"
-    end
-        
-      #Exit if this action isn't defined to have any roles
-    return policy if @@filter_roles[action].nil?
-      
-      #Return false if there is no user and there are defined roles
-    return false if !current_user
-
-      #Go through all the requested roles checking if the user meets any
-    @@filter_roles[action].each do |count, roles|
-      return true if current_user.has_role?( roles, count )
-    end
-      
-      #User isn't okay to do what they are trying to do
-    return false
-  end
 
 	#################
 	# Local Methods #

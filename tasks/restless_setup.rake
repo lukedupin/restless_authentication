@@ -263,7 +263,8 @@ namespace :restless do
         #Create my first line insert data
       output = Array.new
       output.push("  #--Inserted by Restless Authentication")
-      output.push("require 'restless_static_filter.rb'")
+      output.push("require 'restless_static_filter'")
+      output.push("require 'restless_auth_system'")
       output.push("  #--End insert")
       output.push( '' )
 
@@ -277,6 +278,7 @@ namespace :restless do
           #Insert my code
         output.push("#{sp}  #--Inserted by Restless Authentication")
         output.push("#{sp}include RestlessStaticFilter")
+        output.push("#{sp}include RestlessAuthSystem")
         output.push('')
         output.push("#{sp}before_filter :restless_filter")
         output.push("#{sp}  #--End insert")
