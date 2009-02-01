@@ -13,7 +13,7 @@ module RestlessStaticFilter
     return false if !user.is_a? User
 
       #Store my filter policy
-    policy = RestlessAuthentication.static_roles.filter_policy == :black_list
+    policy = (RestlessAuthentication.static_roles.filter_policy == :black_list)
 
       #Populate my roles variable
     roles = [roles.to_sym] if !roles.nil? and !roles.is_a? Array
@@ -46,7 +46,7 @@ module RestlessStaticFilter
   # controller's specific action it is trying to work off of
   def restless_filter
       #Store my filter policy
-    policy = RestlessAuthentication.static_roles.filter_policy == :black_list
+    policy = (RestlessAuthentication.static_roles.filter_policy == :black_list)
 
       #Return that we failed if there is no way to know what action to use
     return policy if !params[:action] or !params[:controller]

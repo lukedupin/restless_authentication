@@ -1,20 +1,20 @@
-require 'restless_auth_sys.rb'
+require 'restless_auth_system'
 
 # This controller handles the login/logout function of the site.  
 class SessionsController < ApplicationController
   include RestlessAuthSystem
 
 	skip_before_filter :restless_filter
-	layout "session"
+	layout "sessions"
 
 	# redirect them to the log in
 	def index
-		redirect_to('/session/new')
+		redirect_to('/sessions/new')
 	end
 
 	# redirect them to the log in
 	def show
-		redirect_to('/session/new')
+		redirect_to('/sessions/new')
 	end
 
   # render new.rhtml

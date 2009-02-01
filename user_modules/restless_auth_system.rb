@@ -9,9 +9,9 @@ module RestlessAuthSystem
 	protected
 	# Log a user in using a unique id from their session
 	def login_from_session
-		(auth.auth_session)? 
-							db.user.model.send("find_by_#{db.user.uid.user_uid_field}", 
-																	session[auth.session.uid_field]): nil
+		(!auth.auth_session)? nil:
+							db.user.model.send("find_by_#{db.user.uid.user_uid}", 
+																	session[auth.session_login.uid_field])
 	end
 
 	# Log a user in from posted variables inside the param method
