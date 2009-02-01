@@ -283,6 +283,10 @@ class RestlessAuthentication
         instance_variable_set("@#{acs}", value)
         self
       end
+
+      def []( attr )
+        self.send(attr)
+      end
     end
 
       #Go through the yaml file recursing through all the config info

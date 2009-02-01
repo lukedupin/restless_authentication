@@ -27,7 +27,7 @@ module RestlessAuthSystem
 	# If no user is found or this ability is turned off, then nil the session var
 	def store_login_to_session
 		session[auth.session_login.uid_field] =(auth.auth_session and current_user)?
-						current_user.send("#{db.user.uid.user_uid_field}"): nil
+						current_user.send("#{db.user.uid.user_uid}"): nil
 	end
 
 	# Used to populate user information into instance variables

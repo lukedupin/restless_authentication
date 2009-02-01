@@ -11,7 +11,7 @@ module RestlessUser
 	# Returns true if the given password matches the one in the database
 	def authenticated?( password )
 		crypt = RestlessAuthentication.authentication.helpers.encryption_method
-		field = RestlessAuthentication.database.user.passwords[RestlessAuthentication.authentication.helpers.password_match]
+		field = RestlessAuthentication.database.user.passwords[RestlessAuthentication.authentication.password_match]
 		
 		(self.send(field) == self.send(crypt, password))? self: nil
 	end
@@ -103,9 +103,10 @@ module RestlessUser
 		# Authenticate a user based on username and password
 		def authenticate( username, password )
 			model = RestlessAuthentication.database.user.model	
-			find_by = "find_by#{RestlessAuthentication.database.user.usernames.username}"
+			find_by = "find_by_#{RestlessAuthentication.database.user.usernames.username_sfield}"
 			auth = RestlessAuthentication.authentication.helpers.authenticated_method
-			(user = model.send(find_by,username))? user.send(auth,password): nil
+			user = model.send(find_by,username)
+      (!user.nil?)? user.send(auth,password): nil
 		end
 	end
 

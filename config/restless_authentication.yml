@@ -19,12 +19,12 @@ database:
     user_relationship: user
 authentication:
   encryption: [md5,sha1,none]
-  password_match: [encrypted_field,plain_text_field]
+  password_match: [encrypted_sfield,plain_text_sfield]
   auth_post: true
   auth_session: true
   auth_cookie: true
   helpers:
-    authenticated_method: authenticated
+    authenticated_method: authenticated?
     password_method: storePassword
     encryption_method: encrypt
     authenticate_method: authenticate
