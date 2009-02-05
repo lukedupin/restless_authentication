@@ -1,4 +1,5 @@
 require "#{File.dirname(__FILE__)}/../lib/restless_authentication"
+require 'erb'
 
 #Used to read in data safely, gets inside rails has issues
 def readline; $stdin.readline; end
@@ -11,6 +12,11 @@ def class_exists?( name )
   rescue
     return false
   end
+end
+
+# ERB a template
+def erbt(t)
+  ERB.new(File.open("#{File.dirname(__FILE__)}/../templates/#{t}").read,0,'<>').result
 end
 
 
@@ -197,11 +203,13 @@ namespace :restless do
             #Create my first line insert data
           output = Array.new
           output.push("  #--Inserted by Restless Authentication")
+
           case section
           when :user
-            output.push("require 'restless_user.rb'")
+            output.push("require 'digest/md5'")
+            output.push("require 'digest/sha1'")
           when :role
-            output.push("require 'restless_static_role.rb'")
+            output.push("require 'restless_static_role'")
           else 
           end
           output.push("  #--End insert")
@@ -218,13 +226,13 @@ namespace :restless do
             output.push("#{sp}  #--Inserted by Restless Authentication")
             case section
             when :user
-              output.push("#{sp}has_many :#{db.user.role_relationship}, :class_name => '#{db.role.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
+              output.push("#{sp}has_many :#{db.user.role_relationship}, :class_name => '#{db.role.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}', :dependent => :destroy")
               output.push('')
-              output.push("#{sp}include RestlessUser")
+              output.push(erbt("modules/restless_user.rb"))
             when :role
               output.push("#{sp}belongs_to :#{db.role.user_relationship}, :class_name => '#{db.user.model.to_s}', :foreign_key => '#{db.role.user_id_ifield}'")
               output.push('')
-              output.push("#{sp}include RestlessStaticRole")
+              output.push(erbt("modules/restless_static_role.rb"))
             else
             end
             output.push("#{sp}  #--End insert")

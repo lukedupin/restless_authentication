@@ -182,7 +182,7 @@ class RestlessAuthentication
   # Insert code into a file
   # The proc is called when it is time to insert data
   # The proc should return an array which will be inserted into the file
-  def self.insert_code( filename, search, first_line = [], &e )
+  def self.insert_code( filename, search, first_line = [], comment = false, &e )
       #Quit if our params aren't valid
     return false if filename.nil? or e.nil? or !File.exists?( filename )
 
@@ -198,7 +198,7 @@ class RestlessAuthentication
       when :search        #Search for the create table call
         if line =~ /^=begin/
           state = :comment_block
-        elsif line.sub(/#.*/,'') =~ /#{search}/
+        elsif ((comment)? line: line.sub(/#.*/,'')) =~ /#{search}/
           state = :insert
           sp = line.sub(/#{search}.*/, '  ').chomp
           tv = line.sub(/.*\|[\t ]*([a-zA-Z0-9_]+).*/, '\1').chomp

@@ -100,13 +100,13 @@ namespace :restless do
 
         #Copy my session controller
       puts "Inserting the default session controller"
-      File.copy( "#{File.dirname(__FILE__)}/../app/controllers/sessions_controller.rb", "#{File.dirname(__FILE__)}/../../../../app/controllers/sessions_controller.rb")
+      File.copy( "#{File.dirname(__FILE__)}/../templates/controllers/sessions_controller.rb", "#{File.dirname(__FILE__)}/../../../../app/controllers/sessions_controller.rb")
 
       puts "Inserting the default session login view"
-      File.copy( "#{File.dirname(__FILE__)}/../app/views/sessions/new.html.erb", "#{File.dirname(__FILE__)}/../../../../app/views/sessions/new.html.erb")
+      File.copy( "#{File.dirname(__FILE__)}/../templates/views/sessions/new.html.erb", "#{File.dirname(__FILE__)}/../../../../app/views/sessions/new.html.erb")
 
       puts "Inserting the default session layout"
-      File.copy( "#{File.dirname(__FILE__)}/../app/views/layouts/session.html.erb", "#{File.dirname(__FILE__)}/../../../../app/views/layouts/session.html.erb")
+      File.copy( "#{File.dirname(__FILE__)}/../templates/views/layouts/sessions.html.erb", "#{File.dirname(__FILE__)}/../../../../app/views/layouts/sessions.html.erb")
 
       puts "#{'Finished basic session management'.ljust(40,'-')}"
       puts
@@ -186,6 +186,7 @@ namespace :restless do
           output.push("#{sp}user = User.new")
           output.push("#{sp}user.#{RestlessAuthentication.database(false).user.usernames.username_sfield} = 'admin'")
           output.push("#{sp}user.#{RestlessAuthentication.authentication(false).helpers.password_method}( 'restless', 'restless' )")
+          output.push("#{sp}user.grant_role(:admin)")
           output.push("#{sp}user.save")
           output.push("#{sp}  #--End insert")
         }

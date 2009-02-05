@@ -13,7 +13,7 @@ module RestlessStaticFilter
     return false if !user.is_a? User
 
       #Store my filter policy
-    policy = (RestlessAuthentication.static_roles.filter_policy == :black_list)
+    policy = <%=RestlessAuthentication.static_roles.filter_policy == :black_list%>
 
       #Populate my roles variable
     roles = [roles.to_sym] if !roles.nil? and !roles.is_a? Array
@@ -46,12 +46,16 @@ module RestlessStaticFilter
   # controller's specific action it is trying to work off of
   def restless_filter
       #Store my filter policy
-    policy = (RestlessAuthentication.static_roles.filter_policy == :black_list)
+    policy = <%=RestlessAuthentication.static_roles.filter_policy == :black_list%>
 
       #Return that we failed if there is no way to know what action to use
-    return policy if !params[:action] or !params[:controller]
+    if !params[:action] or !params[:controller]
+      redirect_to('/sessions/new') if !policy 
+      return policy
+    end
     action = params[:action].to_sym
     controller = params[:controller].to_sym
+    raise "#{session[:user_uid].to_i} #{self.current_user.class}"
 
       #Raise an error if my filter roles aren't even defined yet
     if !static_roles
@@ -60,17 +64,24 @@ module RestlessStaticFilter
     end
         
       #Exit if this action isn't defined to have any roles
-    return policy if static_roles[action].nil?
+    if static_roles[action].nil?
+      redirect_to('/sessions/new') if !policy 
+      return policy 
+    end
       
       #Return false if there is no user and there are defined roles
-    return false if !current_user
+    if !self.current_user
+      redirect_to('/sessions/new')
+      return false 
+    end
 
       #Go through all the requested roles checking if the user meets any
     static_roles[action].each do |count, roles|
-      return true if current_user.has_role?( roles, count )
+      return true if self.current_user.has_role?( roles, count )
     end
       
       #User isn't okay to do what they are trying to do
+    redirect_to('/sessions/new')
     return false
   end
 
