@@ -15,8 +15,9 @@ def class_exists?( name )
 end
 
 # ERB a template
-def erbt(t)
-  ERB.new(File.open("#{File.dirname(__FILE__)}/../templates/#{t}").read,0,'<>').result
+def erbt(t); erb( "#{File.dirname(__FILE__)}/../templates/#{t}" ); end
+def erb(t)
+  ERB.new( File.open(t).read, 0, '<>' ).result
 end
 
 
@@ -36,11 +37,39 @@ namespace :restless do
     task :all do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
+      Rake::Task["restless:setup:modules"].execute
       Rake::Task["restless:setup:models"].execute
       Rake::Task["restless:setup:migrations"].execute
       Rake::Task["restless:setup:model_code"].execute
       Rake::Task["restless:setup:controller_code"].execute
+      puts 
+      puts '**Run rake restless:system'
     end
+
+    ##
+    ## Copy the user's modules into the lib directory
+    ##
+    desc "Copy the user modules into the user's lib directory"
+    task :modules do
+      #Start building out models
+      puts "#{'Module Copy Begin'.ljust(40,'-')}"
+
+        #Create my instance variable to keep record of what I've done
+      @models = Hash.new
+      path = "#{File.dirname(__FILE__)}/../user_modules"
+
+        #copy my modules
+      `ls #{path}`.split(/\n/).each do |f|
+        puts "Copying #{f}"
+        file = File.open("#{File.dirname(__FILE__)}/../../../../lib/#{f}", 'w')
+        file.puts erb("#{path}/#{f}")
+        file.close
+      end
+
+      puts "#{'Module Copy Finished'.ljust(40,'-')}"
+      puts
+    end
+
 
     ##
     ## Ensure the user has created models for the user tables

@@ -110,13 +110,6 @@ file = File.open("#{File.dirname(__FILE__)}/../../../config/restless_authenticat
 file.puts dump_config(@hash)
 file.close
 
-	#copy my modules
-`ls #{File.dirname(__FILE__)}/user_modules`.split(/\n/).each do |f|
-	puts "Copying #{f}"
-	File.copy("#{File.dirname(__FILE__)}/user_modules/#{f}",
-						"#{File.dirname(__FILE__)}/../../../lib/#{f}" )
-end
-
   #Tell the user we are done
 puts ""
 puts "Restless Authentication installation complete"

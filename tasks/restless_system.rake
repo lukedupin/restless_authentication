@@ -35,6 +35,8 @@ namespace :restless do
       Rake::Task["restless:system:create_login_system"].execute
       Rake::Task["restless:system:create_admin_role"].execute
       Rake::Task["restless:system:create_admin_user"].execute
+      puts
+      puts '**Run rake db:migrate'
     end
 
     ##

@@ -47,11 +47,11 @@
       #Convert all role symbols into the role code form
     roles = Array.new
 <%model = RestlessAuthentication.database.role.model%>
-    roles_sym.each {|r| roles.push(<%=model%>.role2code(r)) }
+    roles_sym.each {|r| roles.push(<%=model%>.role_to_code(r)) }
 
       #Get all my local variables ready to be used
     hits = 0
-    self.list_roles.each {|r| hits += 1 if roles.contains?(r)}
+    self.list_roles.each {|r| hits += 1 if roles.include?(r)}
 
       #If the number of hits is biggger than count, return true, else false
     return (hits >= count)

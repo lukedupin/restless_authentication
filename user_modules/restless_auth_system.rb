@@ -9,16 +9,16 @@ module RestlessAuthSystem
   protected
   # Log a user in using a unique id from their session
   def login_from_session
-<%if RestlessAuthentication.authentication.auth_session%>
-    <%="#{RestlessAuthentication.database.user.model}.find_by_#{RestlessAuthentication.database.user.uid.user_uid}(session[:#{RestlessAuthentication.authentication.session_login.uid_field}])"%>
+<%if RestlessAuthentication.authentication(false).auth_session%>
+    <%="#{RestlessAuthentication.database(false).user.model.to_s}.find_by_#{RestlessAuthentication.database(false).user.uid.user_uid}(session[:#{RestlessAuthentication.authentication(false).session_login.uid_field}])"%>
 <%end%>
   end
 
   # Log a user in from posted variables inside the param method
   def login_from_post
-<%if RestlessAuthentication.authentication.auth_post%>
-    return nil if !params or !params[:<%=RestlessAuthentication.authentication.post_login.post_form_field%>]
-    User.authenticate( params[:<%=RestlessAuthentication.authentication.post_login.post_form_field%>][:<%=RestlessAuthentication.authentication.post_login.post_username_field%>], params[:<%=RestlessAuthentication.authentication.post_login.post_form_field%>][:<%=RestlessAuthentication.authentication.post_login.post_password_field%>] )
+<%if RestlessAuthentication.authentication(false).auth_post%>
+    return nil if !params or !params[:<%=RestlessAuthentication.authentication(false).post_login.post_form_field%>]
+    User.authenticate( params[:<%=RestlessAuthentication.authentication(false).post_login.post_form_field%>][:<%=RestlessAuthentication.authentication(false).post_login.post_username_field%>], params[:<%=RestlessAuthentication.authentication(false).post_login.post_form_field%>][:<%=RestlessAuthentication.authentication(false).post_login.post_password_field%>] )
 <%end%>
   end
 
@@ -28,8 +28,8 @@ module RestlessAuthSystem
   # Store the user's unique id to our session so it can be loaded next time
   # If no user is found or this ability is turned off, then nil the session var
   def store_login_to_session
-<%if RestlessAuthentication.authentication.auth_session%>
-    session[:<%=RestlessAuthentication.authentication.session_login.uid_field.to_sym%>] =(current_user)? current_user.<%=RestlessAuthentication.database.user.uid.user_uid%>: nil
+<%if RestlessAuthentication.authentication(false).auth_session%>
+    session[:<%=RestlessAuthentication.authentication(false).session_login.uid_field.to_sym%>] =(current_user)? current_user.<%=RestlessAuthentication.database(false).user.uid.user_uid%>: nil
 <%end%>
   end
 
@@ -46,7 +46,7 @@ module RestlessAuthSystem
   def logout_keeping_session!
     @current_user = false     # not logged in, and don't do it for me
     kill_remember_cookie!     # Kill client-side auth cookie
-    session[RestlessAuthentication.authentication.session_login.uid_field] = nil
+    session[RestlessAuthentication.authentication(false).session_login.uid_field] = nil
   end
 
   # Kill the user's cookie
@@ -75,7 +75,7 @@ module RestlessAuthSystem
   # If false is passed, then the user account is made inactive for this run
   def current_user=(new_user)
       #If the user gave us anything other than a user model, nil and split
-    if !new_user.is_a? <%=RestlessAuthentication.database.user.model%>
+    if !new_user.is_a? <%=RestlessAuthentication.database(false).user.model.to_s%>
       @current_user = false 
     else
       @current_user = new_user
