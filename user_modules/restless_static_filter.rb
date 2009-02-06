@@ -111,9 +111,9 @@ module RestlessStaticFilter
       ((action.is_a? Array)? action: [action]).each do |act|
         case act
         when :all
-          act_ary.concat([:index, :show, :new, :edit, :create, :update,:delete])
+          act_ary.concat([:index, :show, :new, :edit, :create, :update,:destroy])
         when :changeable
-          act_ary.concat([:create, :update, :delete])
+          act_ary.concat([:create, :update, :destroy])
         when :viewable
           act_ary.concat([:index, :show, :new, :edit])
         else

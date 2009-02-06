@@ -15,6 +15,12 @@
     return <%=RestlessAuthentication.database.role.model%>.role_list_inv[code]
   end
 
+  # Return a human readable name for the given role
+  def self.role2name( role ); role_to_name( role ); end
+  def self.role_to_name( role )
+    role.to_s.capitalize.gsub(/_/, ' ')
+  end
+
   # Create a role in the database
   def self.create_role( sym )
     role = Role.new
@@ -26,6 +32,11 @@
 	# Instance Methods #
 	####################
   # Returns the name of the role defined by this database entry
-  def name
+  def role
     <%=RestlessAuthentication.database.role.model.to_s%>.code_to_role( self.code )
+  end
+
+  # Return a user friendly version of this role
+  def name
+    <%=RestlessAuthentication.database.role.model.to_s%>.role_to_name(self.role)
   end

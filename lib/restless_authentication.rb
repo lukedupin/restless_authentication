@@ -245,8 +245,8 @@ class RestlessAuthentication
       #Change my special instances to a better form
     @@stream_line = stream_line
     if stream_line
-      @@database.user.model = eval(@@database.user.model.to_s)
-      @@database.role.model = eval(@@database.role.model.to_s)
+#      @@database.user.model = eval(@@database.user.model.to_s)
+#      @@database.role.model = eval(@@database.role.model.to_s)
       @@authentication.encryption = RestlessAuthentication.method(@@authentication.encryption)
     end
 

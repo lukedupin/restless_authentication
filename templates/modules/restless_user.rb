@@ -39,8 +39,8 @@
 	end
 
   # Returns true if the current class contains the requested role(s)
-  def has_roles?( roles, count ); has_role?( roles, count); end
-  def has_role?( roles_sym, count = 1 )
+  def has_role?( role, count = 1 ); has_roles?( role, count); end
+  def has_roles?( roles_sym, count = 1 )
       #Convert role to an array if it isn't one
     roles_sym = [roles_sym.to_sym] if !roles_sym.is_a? Array
 
@@ -51,32 +51,23 @@
 
       #Get all my local variables ready to be used
     hits = 0
-    self.list_roles.each {|r| hits += 1 if roles.include?(r)}
+    self.roles.each {|r| hits += 1 if roles.include?(r.code)}
 
       #If the number of hits is biggger than count, return true, else false
     return (hits >= count)
   end
 
-  # Return an array of all the static roles the user contains
-  def list_roles
-<%field = RestlessAuthentication.database.role.role_code_ifield.to_sym%>
-<%roles = RestlessAuthentication.database.user.role_relationship.to_sym%>
-  
-      #Find all possible instances of the requested roles
-    return self.<%=roles%>.collect{|x| x.<%=field%>}
-  end
-
   # Give a static role to a given user
-  def grant_roles( roles ); grant_role(roles); end
-  def grant_role( roles )
+  def grant_role( role ); grant_roles(role); end
+  def grant_roles( roles )
     roles = [roles] if !roles.is_a? Array
 
-      #Get a list of roles
+      #Get a list of roles of new roles to add, removing ones I alread have
     r = self.<%=RestlessAuthentication.database.user.role_relationship%>.collect {|x| x.<%=RestlessAuthentication.database.role.role_code_ifield%> }
-    r.delete_if {|x| roles.include?(x)}
+    roles.delete_if {|x| r.include?(x)}
 
       #Add any roles that are still out there
-    roles.each do |role|
+    roles.compact.each do |role|
       self.<%=RestlessAuthentication.database.user.role_relationship%> << Role.create_role(role)
     end
 
@@ -84,9 +75,10 @@
   end
 
   # Revoke a list of rights a user has
-  def revoke_role( roles )
+  def revoke_role( role ); revoke_roles( role ); end
+  def revoke_roles( roles )
     roles = [roles] if !roles.is_a? Array
-    roles.collect!{|x| Role.role_to_code( x )}
+    roles = roles.compact.collect{|x| Role.role_to_code( x )}
 
       #Get a list of roles
     self.<%=RestlessAuthentication.database.user.role_relationship%>.each do |x| 

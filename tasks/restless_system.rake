@@ -14,6 +14,12 @@ def class_exists?( name )
   end
 end
 
+# ERB a template
+def erbt(t); erb( "#{File.dirname(__FILE__)}/../templates/#{t}" ); end
+def erb(t)
+  ERB.new( File.open(t).read, 0, '<>' ).result
+end
+
 
 # Jobs usally associtated with restless_authentication installations
 namespace :restless do
@@ -59,13 +65,51 @@ namespace :restless do
 
         #Spit out a list of fields we are going to use
       fields = Array.new
-      RestlessAuthentication.database.user.model.columns.each do |field|
+      eval(RestlessAuthentication.database.user.model.to_s).columns.each do |field|
         if field.type == :string and !skip.include?( field.name.to_sym )
           fields.push( field.name ) 
         end
       end
 
-      puts `ruby #{File.dirname(__FILE__)}/../../../../script/generate scaffold #{RestlessAuthentication.database.user.model.to_s} #{fields.collect{|x| "#{x}:string"}.join(' ')} password1:string password2:string`
+      # Scaffold the user template first
+      puts `ruby #{File.dirname(__FILE__)}/../../../../script/generate scaffold #{RestlessAuthentication.database.user.model.to_s} #{fields.collect{|x| "#{x}:string"}.join(' ')}`
+
+      # Overwrite the scaffold with our templates
+      ['controllers/users_controller.rb'].each do |f|
+        puts "Inserting template: #{f}"
+        file = File.open("#{File.dirname(__FILE__)}/../../../../app/#{f}", 'w')
+        file.puts erbt(f)
+        file.close
+      end
+
+      #Add our password stuff into our 
+      puts "Expanding Froms"
+      path = "#{File.dirname(__FILE__)}/../../../../app/views/users"
+      match = "</p>"
+      ['edit.html.erb', 'new.html.erb'].each do |attr|
+        result = RestlessAuthentication.insert_code("#{path}/#{attr}", match){
+          |sp, tv|
+          output = Array.new
+  
+            #Insert my code
+          output.push("#{sp}<p>")
+          output.push("#{sp}  <label>Password</label><br />")
+          output.push("#{sp}  <%= password_field( 'user', 'password', :value => '' )%>")
+          output.push("#{sp}</p>")
+          output.push("#{sp}<p>")
+          output.push("#{sp}  <label>Password Confirm</label><br />")
+          output.push("#{sp}  <%= password_field( 'user', 'password_confirm', :value => '' )%>")
+          output.push("#{sp}</p>")
+          output.push("#{sp}<p>")
+          output.push("#{sp}  <div class=\"user_roles\">Roles</div><br />")
+          output.push("#{sp}<% #{RestlessAuthentication.database.role.model.to_s}.role_list.each do |k, v| %>")
+          output.push("#{sp}  <% if k != :none %>")
+          output.push("#{sp}    <label><%= check_box 'user', \"role_list_\#{v}\", { :checked => @user.has_role?(k)}, v, 0 %> <%=#{RestlessAuthentication.database.role.model.to_s}.role_to_name(k) %></label>")
+          output.push("#{sp}  <% end %>")
+          output.push("#{sp}<% end %>")
+          output.push("#{sp}</p>")
+        }
+      end
 
       puts "#{'Finished user scaffold'.ljust(40,'-')}"
       puts
