@@ -68,7 +68,7 @@
 
       #Add any roles that are still out there
     roles.compact.each do |role|
-      self.<%=RestlessAuthentication.database.user.role_relationship%> << Role.create_role(role)
+      self.<%=RestlessAuthentication.database.user.role_relationship%> << <%=RestlessAuthentication.database.role.model%>.create_role(role)
     end
 
     return self
@@ -78,7 +78,7 @@
   def revoke_role( role ); revoke_roles( role ); end
   def revoke_roles( roles )
     roles = [roles] if !roles.is_a? Array
-    roles = roles.compact.collect{|x| Role.role_to_code( x )}
+    roles = roles.compact.collect{|x| <%=RestlessAuthentication.database.role.model%>.role_to_code( x )}
 
       #Get a list of roles
     self.<%=RestlessAuthentication.database.user.role_relationship%>.each do |x| 

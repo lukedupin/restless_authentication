@@ -13,7 +13,7 @@ database:
       expires_tfield: remember_token_expires_at
     role_relationship: roles
   role:
-    model: Role
+    model: RoleUser
     role_code_ifield: code
     user_id_ifield: user_id
     user_relationship: user

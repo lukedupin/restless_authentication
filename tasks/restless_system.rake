@@ -179,9 +179,10 @@ namespace :restless do
         output = Array.new
 
           #Insert my code
-        output.push("#{sp}  #--Inserted by Restless Authentication")
+        output.push('')
+        output.push("#{sp}#--Inserted by Restless Authentication")
         output.push("#{sp}define_roles( { :admin => 1 } )")
-        output.push("#{sp}  #--End insert")
+        output.push("#{sp}#--End insert")
         output.push('')
       }
   

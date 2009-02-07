@@ -61,7 +61,47 @@ module RestlessStaticRole
     # Used to relay the module class variables... might be a oxy moron there
     def role_list; (defined? @@role_list)? @@role_list: Hash.new; end
     def role_list_inv;(defined? @@role_list_inv)? @@role_list_inv: Hash.new;end
+
+    # Return the code of a given static role
+    def role2code( role ); role_to_code(role); end
+    def role_to_code( role )
+      return <%=RestlessAuthentication.database.role.model%>.role_list[role.to_sym]
+    end
+
+    # Return the static role based on the code
+    def code2role( code ); code_to_role(code); end
+    def code_to_role( code )
+      return <%=RestlessAuthentication.database.role.model%>.role_list_inv[code]
+    end
+
+    # Return a human readable name for the given role
+    def role2name( role ); role_to_name( role ); end
+    def role_to_name( role )
+      role.to_s.capitalize.gsub(/_/, ' ')
+    end
+
+    # Create a role in the database
+    def create_role( sym )
+      role = <%=RestlessAuthentication.database.role.model%>.new
+      role.<%=RestlessAuthentication.database.role.role_code_ifield%> = <%=RestlessAuthentication.database.role.model%>.role_to_code( sym )
+      return role
+    end
   end
+
+
+  ####################
+  # Instance Methods #
+  ####################
+  # Returns the name of the role defined by this database entry
+  def role
+    <%=RestlessAuthentication.database.role.model.to_s%>.code_to_role( self.code )
+  end
+
+  # Return a user friendly version of this role
+  def name
+    <%=RestlessAuthentication.database.role.model.to_s%>.role_to_name(self.role)
+  end
+
  
   #################
   # Local Methods #
