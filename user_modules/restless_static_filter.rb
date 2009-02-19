@@ -41,6 +41,28 @@ module RestlessStaticFilter
     return false
   end
 
+  # Returns true if the user can access a given controller and method
+  def can_access?( controller, action = :index, user = current_user )
+      #Store my filter policy
+    policy = (RestlessAuthentication.static_roles.filter_policy ==:black_list)
+
+      #Get my params into usable form
+    cont = eval("#{controller.to_s.capitalize}Controller")
+    action = action.to_sym
+
+      #Quit if we can't find any roles to check for
+    return policy if !cont.static_roles
+
+      #Store my roles role pool into the local role variables
+    return policy if cont.static_roles[action].nil?
+
+      #Check if this user meets any of the valid access requirements
+    cont.static_roles[action].each do |count, roles|
+      return true if user.has_role?(roles, count)
+    end
+
+    return false
+  end
 
   # Before filter that requires a user to have static roles access to this
   # controller's specific action it is trying to work off of
@@ -122,21 +144,21 @@ module RestlessStaticFilter
       end
 
         #Create my class objects to hold my list of static role auth
-      @@filter_roles = Hash.new if !defined? @@filter_roles
+      @filter_roles = Hash.new if @filter_roles.nil?
 
         #Add all these roles to all our actions we work with
       act_ary.each do |act|
         roles.each do |role|
-          @@filter_roles[act] = Hash.new if @@filter_roles[act].nil? 
-          @@filter_roles[act][count] = Array.new if @@filter_roles[act][count].nil?
-          @@filter_roles[act][count].push(role) if !@@filter_roles[act][count].include?(role)
+          @filter_roles[act] = Hash.new if @filter_roles[act].nil? 
+          @filter_roles[act][count] = Array.new if @filter_roles[act][count].nil?
+          @filter_roles[act][count].push(role) if !@filter_roles[act][count].include?(role)
         end
       end
     end
 
     # This is an accessor to the user's static access rights
     def static_roles
-      (defined? @@filter_roles)? @@filter_roles: nil
+      @filter_roles
     end
 	end
 
@@ -147,5 +169,6 @@ module RestlessStaticFilter
 	# Used to create class methods along with instance methods
 	def self.included(base)
     base.extend(ClassMethods)
+    base.send :helper_method, :can_access? if base.respond_to? :helper_method
   end
 end
