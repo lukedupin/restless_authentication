@@ -5,12 +5,16 @@ module RestlessStaticRoleHelper
   #################
   module ClassMethods
     # Define the role table we use
-    def define_role_class( klass )
+    def define_role_class( klass, roles_field = :roles )
       @role_class = klass.to_s
+      @roles_field = roles_field
     end
 
     # Return the role class
     def role_class; @role_class; end
+
+    # Return the roles field
+    def roles_field; @roles_field; end
   end
 
 
@@ -21,6 +25,12 @@ module RestlessStaticRoleHelper
   def role_class
     @role_class ||= eval(self.class.role_class)
   end
+
+  # returns my roles field
+  def roles_field
+    @roles_field ||= self.class.roles_field.to_sym
+  end
+
 
   # Returns true if the current class contains the requested role(s)
   def has_role?( role, count = 1 ); has_roles?( role, count); end
@@ -34,7 +44,7 @@ module RestlessStaticRoleHelper
 
       #Get all my local variables ready to be used
     hits = 0
-    self.roles.each {|r| hits += 1 if roles.include?(r.code)}
+    self.send(roles_field).each {|r| hits += 1 if roles.include?(r.code)}
 
       #If the number of hits is biggger than count, return true, else false
     return (hits >= count)
@@ -46,12 +56,12 @@ module RestlessStaticRoleHelper
     roles = [roles] if !roles.is_a? Array
 
       #Get a list of roles of new roles to add, removing ones I alread have
-    r = self.roles.collect {|x| x.code }
+    r = self.send(roles_field).collect {|x| x.code }
     roles.delete_if {|x| r.include?(x)}
 
       #Add any roles that are still out there
     roles.compact.each do |role|
-      self.roles << role_class.create_role(role)
+      self.send(roles_field) << role_class.create_role(role)
     end
 
     return self
@@ -64,7 +74,7 @@ module RestlessStaticRoleHelper
     roles = roles.compact.collect{|x| role_class.role_to_code( x )}
 
       #Get a list of roles
-    self.roles.each do |x|
+    self.send(roles_field).each do |x|
       x.destroy if roles.include?( x.code )
     end
 

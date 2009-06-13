@@ -47,7 +47,7 @@ module RestlessStaticFilter
     policy = (RestlessAuthentication.static_roles.filter_policy ==:black_list)
 
       #Get my params into usable form
-    cont = eval("#{controller.to_s.capitalize}Controller")
+    cont = eval("#{controller.to_s.split(/_/).collect{|x| x.capitalize}.join}Controller")
     action = action.to_sym
 
       #Quit if we can't find any roles to check for
@@ -89,7 +89,12 @@ module RestlessStaticFilter
       redirect_to('/sessions/new') if !policy 
       return policy 
     end
-      
+
+      #If we are allowing guests which are not logged in
+    static_roles[action].each do |count, roles|
+      return true if roles.include?(:anonymous) and count <= 1
+    end
+
       #Return false if there is no user and there are defined roles
     if !self.current_user
       redirect_to('/sessions/new')
@@ -98,6 +103,7 @@ module RestlessStaticFilter
 
       #Go through all the requested roles checking if the user meets any
     static_roles[action].each do |count, roles|
+      return true if roles.include?( :everyone ) and count <= 1
       return true if self.current_user.has_role?( roles, count )
     end
       
