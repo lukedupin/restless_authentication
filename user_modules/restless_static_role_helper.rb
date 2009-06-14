@@ -50,6 +50,17 @@ module RestlessStaticRoleHelper
     return (hits >= count)
   end
 
+  # Updates the roles to match the one supplied
+  def update_role( role ); update_roles(role); end
+  def update_roles( roles )
+    roles = [roles] if !roles.is_a? Array
+
+      #Add the new roles and remove the old ones
+    has = self.send(roles_field).collect{|x| x.role}
+    self.grant_roles( roles - has )
+    self.revoke_roles( has - roles )
+  end
+
   # Give a static role to a given user
   def grant_role( role ); grant_roles(role); end
   def grant_roles( roles )
