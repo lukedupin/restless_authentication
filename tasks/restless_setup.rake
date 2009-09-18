@@ -82,6 +82,7 @@ namespace :restless do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
       Rake::Task["db:drop"].execute
+      Rake::Task["db:create"].execute
       Rake::Task["db:migrate"].execute
 
         #Create my instance variable to keep record of what I've done
@@ -115,6 +116,7 @@ namespace :restless do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
       Rake::Task["db:drop"].execute
+      Rake::Task["db:create"].execute
       Rake::Task["db:migrate"].execute
 
         #Create my models list if one doesn't exist already
@@ -219,6 +221,7 @@ namespace :restless do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
       Rake::Task["db:drop"].execute
+      Rake::Task["db:create"].execute
       Rake::Task["db:migrate"].execute
 
         #Go through all the models I use and insert my code into them
@@ -291,6 +294,7 @@ namespace :restless do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
       Rake::Task["db:drop"].execute
+      Rake::Task["db:create"].execute
       Rake::Task["db:migrate"].execute
 
         #Go through all the models I use and insert my code into them
