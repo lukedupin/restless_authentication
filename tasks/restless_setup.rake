@@ -310,7 +310,7 @@ namespace :restless do
       output.push( '' )
 
         #Create my local variables of who we are editing
-      filename = "#{path}/application.rb"
+      filename = "#{path}/application_controller.rb"
       match = "class ApplicationController"
       result = RestlessAuthentication.insert_code(filename, match, output){
         |sp, tv|
