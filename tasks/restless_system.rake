@@ -56,6 +56,7 @@ namespace :restless do
       RAILS_ENV='test'
       Rake::Task["environment"].execute
       Rake::Task["db:drop"].execute
+      Rake::Task["db:create"].execute
       Rake::Task["db:migrate"].execute
 
         #Get a list of all the fields we are going to add for the user
